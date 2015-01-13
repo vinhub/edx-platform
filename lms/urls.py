@@ -4,12 +4,12 @@ URLs for LMS
 
 from django.conf import settings
 from django.conf.urls import patterns, include, url
-from ratelimitbackend import admin
 from django.conf.urls.static import static
 
 import django.contrib.auth.views
 from microsite_configuration import microsite
 import auth_exchange.views
+from edx_admin import admin
 
 from config_models.views import ConfigurationModelCurrentAPIView
 from openedx.core.djangoapps.self_paced.models import SelfPacedConfiguration
@@ -778,3 +778,9 @@ urlpatterns += (
 urlpatterns += (
     url(r'^api/', include('edx_proctoring.urls')),
 )
+
+# Django-sudo
+if settings.FEATURES.get('ENABLE_DJANGO_SUDO', False):
+    urlpatterns += (
+        url(r'^sudo/$', 'sudo.views.sudo'),
+    )
