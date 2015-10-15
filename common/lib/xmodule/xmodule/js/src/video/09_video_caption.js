@@ -1176,9 +1176,9 @@ function (Sjson, AsyncProcess, Draggabilly) {
 
                 transcriptControlEl
                     .removeClass('is-active')
-                .attr('aria-pressed', 'false')
-                .find('.control-text')
-                    .text(gettext(text));
+                    .attr('aria-pressed', 'false')
+                    .find('.control-text')
+                        .text(gettext(text));
             } else {
                 state.captionsHidden = false;
                 state.el.removeClass('closed');
@@ -1190,9 +1190,9 @@ function (Sjson, AsyncProcess, Draggabilly) {
 
                 transcriptControlEl
                     .addClass('is-active')
-                .attr('aria-pressed', 'true')
-                .find('.control-text')
-                    .text(gettext(text));
+                    .attr('aria-pressed', 'true')
+                    .find('.control-text')
+                        .text(gettext(text));
             }
 
             if (state.resizer) {
