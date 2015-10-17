@@ -105,8 +105,8 @@ class TestPaverBokChoyCmd(unittest.TestCase):
                 shard_str='/shard_' + self.shard if self.shard else ''
             )
         )
-        suite = BokChoyTestSuite('', num_processors=1)
-        self.assertEqual(BokChoyTestSuite.verbosity_processor_string(suite), expected_verbosity_string)
+        suite = BokChoyTestSuite('', num_processes=1)
+        self.assertEqual(BokChoyTestSuite.verbosity_processes_string(suite), expected_verbosity_string)
 
     def test_verbosity_settings_2_processes(self):
         """
@@ -122,8 +122,8 @@ class TestPaverBokChoyCmd(unittest.TestCase):
                 procs=process_count
             )
         )
-        suite = BokChoyTestSuite('', num_processors=process_count)
-        self.assertEqual(BokChoyTestSuite.verbosity_processor_string(suite), expected_verbosity_string)
+        suite = BokChoyTestSuite('', num_processes=process_count)
+        self.assertEqual(BokChoyTestSuite.verbosity_processes_string(suite), expected_verbosity_string)
 
     def test_verbosity_settings_3_processes(self):
         """
@@ -138,14 +138,14 @@ class TestPaverBokChoyCmd(unittest.TestCase):
                 procs=process_count
             )
         )
-        suite = BokChoyTestSuite('', num_processors=process_count)
-        self.assertEqual(BokChoyTestSuite.verbosity_processor_string(suite), expected_verbosity_string)
+        suite = BokChoyTestSuite('', num_processes=process_count)
+        self.assertEqual(BokChoyTestSuite.verbosity_processes_string(suite), expected_verbosity_string)
 
     def test_invalid_verbosity_and_processes(self):
         """
         If an invalid combination of verbosity and number of processors is passed in, a
         BuildFailure should be raised
         """
-        suite = BokChoyTestSuite('', num_processors=2, verbosity=3)
+        suite = BokChoyTestSuite('', num_processes=2, verbosity=3)
         with self.assertRaises(BuildFailure):
-            BokChoyTestSuite.verbosity_processor_string(suite)
+            BokChoyTestSuite.verbosity_processes_string(suite)
