@@ -27,6 +27,15 @@ import branding
 
 from opaque_keys.edx.keys import UsageKey
 
+from .date_summary import (
+    CourseEndDate,
+    CourseStartDate,
+    TodaysDate,
+    VerificationDeadlineDate,
+    VerifiedUpgradeDeadlineDate,
+)
+
+
 log = logging.getLogger(__name__)
 
 
@@ -299,6 +308,34 @@ def get_course_info_section(request, course, section_key):
             )
 
     return html
+
+
+def get_course_date_summary(course, user):
+    """
+    Return the snippet of HTML to be included on the course info page
+    in the 'Date Summary' section.
+    """
+    blocks = _get_course_date_summary_blocks(course, user)
+    return '\n'.join(
+        b.render() for b in blocks
+    )
+
+
+def _get_course_date_summary_blocks(course, user):
+    """
+    Return the list of blocks to display on the course info page,
+    sorted by date.
+    """
+    block_classes = (
+        CourseEndDate,
+        CourseStartDate,
+        TodaysDate,
+        VerificationDeadlineDate,
+        VerifiedUpgradeDeadlineDate,
+    )
+
+    blocks = (cls(course, user) for cls in block_classes)
+    return sorted((b for b in blocks if b.is_enabled), key=lambda b: b.date)
 
 
 # TODO: Fix this such that these are pulled in as extra course-specific tabs.
