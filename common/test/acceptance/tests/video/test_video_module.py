@@ -251,7 +251,7 @@ class YouTubeVideoTest(VideoBaseTest):
         Then the "CC" button is hidden
         """
         self.navigate_to_video()
-        self.assertFalse(self.video.is_button_shown('transcript'))
+        self.assertFalse(self.video.is_button_shown('transcript_button'))
 
     def test_fullscreen_video_alignment_with_transcript_hidden(self):
         """

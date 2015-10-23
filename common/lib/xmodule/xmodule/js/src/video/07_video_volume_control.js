@@ -345,6 +345,8 @@ function() {
 
                 case KEY.SPACE:
                 case KEY.ENTER:
+                    // Shift + Enter keyboard shortcut might be used by
+                    // screen readers. In this case, do nothing.
                     if (event.shiftKey) {
                         return true;
                     }

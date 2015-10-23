@@ -98,7 +98,7 @@ function (Iterator) {
                 speedsList = $.map(reversedSpeeds, function (speed) {
                     return [
                         '<li data-speed="', speed, '">',
-                            '<button class="control speed-link" tabindex="-1">',
+                            '<button class="control speed-option" tabindex="-1">',
                                 speed, 'x',
                             '</button>',
                         '</li>'
@@ -106,7 +106,7 @@ function (Iterator) {
                 });
 
             speedsContainer.html(speedsList.join(''));
-            this.speedLinks = new Iterator(speedsContainer.find('.speed-link'));
+            this.speedLinks = new Iterator(speedsContainer.find('.speed-option'));
             this.state.el.find('.secondary-controls').prepend(this.el);
         },
 
@@ -128,7 +128,7 @@ function (Iterator) {
             this.speedsContainer.on({
                 click: this.clickLinkHandler,
                 keydown: this.keyDownLinkHandler
-            }, '.speed-link');
+            }, '.speed-option');
 
             this.state.el.on({
                 'speed:set': this.onSetSpeed,

@@ -201,7 +201,7 @@ describe('VideoVolumeControl', function () {
 
             // adjust the volume
             button.focus();
-            button.trigger(keyPressEvent(KEY.UP));  // Up
+            button.trigger(keyPressEvent(KEY.UP));
             expect(volumeControl.volume).toEqual(80);
         });
 
@@ -225,7 +225,7 @@ describe('VideoVolumeControl', function () {
 
             // adjust the volume
             button.focus();
-            button.trigger(keyPressEvent(KEY.DOWN));  // Down
+            button.trigger(keyPressEvent(KEY.DOWN));
             expect(volumeControl.volume).toEqual(40);
         });
 

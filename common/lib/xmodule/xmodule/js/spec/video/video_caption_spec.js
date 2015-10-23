@@ -190,7 +190,7 @@
                     it('when clicking on link with new language', function () {
                         state = jasmine.initializePlayer();
                         var Caption = state.videoCaption,
-                            link = $('.langs-list li[data-lang-code="de"] .control');
+                            link = $('.langs-list li[data-lang-code="de"] .control-lang');
 
                         spyOn(Caption, 'fetchCaption');
                         spyOn(state.storage, 'setItem');
@@ -242,6 +242,7 @@
                     it('closes the language menu on ESC', function() {
                         state = jasmine.initializePlayer();
                         $('.language-menu').trigger(keyPressEvent(KEY.UP));
+                        expect($('.lang')).toHaveClass('is-opened');
                         $('.language-menu').trigger(keyPressEvent(KEY.ESCAPE));
                         expect($('.lang')).not.toHaveClass('is-opened');
                         expect($('.language-menu')).toBeFocused();

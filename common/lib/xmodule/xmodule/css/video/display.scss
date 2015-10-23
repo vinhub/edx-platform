@@ -463,7 +463,7 @@ html:not('.afontgarde') .icon-fallback-img {
               @extend %ui-fake-link;
               color: rgb(231, 236, 238); // UXPL grayscale-cool x-light
 
-              .speed-link,
+              .speed-option,
               .control-lang {
                 @include text-align(left);
                 display: block;
@@ -488,7 +488,7 @@ html:not('.afontgarde') .icon-fallback-img {
 
               &.is-active {
 
-                .speed-link,
+                .speed-option,
                 .control-lang {
                   color: rgb(14, 166, 236); // UXPL primary accent
                 }

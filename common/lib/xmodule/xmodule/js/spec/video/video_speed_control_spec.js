@@ -38,7 +38,7 @@
                         expect($(link)).toHaveData(
                             'speed', state.speeds[index]
                         );
-                        expect($(link).find('.speed-link').text()).toBe(
+                        expect($(link).find('.speed-option').text()).toBe(
                             state.speeds[index] + 'x'
                         );
                     });
@@ -85,7 +85,7 @@
                     speedControl = $('.speeds');
                     speedButton = $('.speed-button');
                     speedsContainer = $('.video-speeds');
-                    speedEntries = speedsContainer.find('.speed-link');
+                    speedEntries = speedsContainer.find('.speed-options');
                 });
 
                 it('open/close the speed menu on mouseenter/mouseleave',
@@ -216,7 +216,7 @@
                 it('trigger speedChange event', function () {
                     spyOnEvent(state.el, 'speedchange');
 
-                    $('li[data-speed="0.75"] .speed-link').click();
+                    $('li[data-speed="0.75"] .speed-options').click();
                     expect('speedchange').toHaveBeenTriggeredOn(state.el);
                     expect(state.videoSpeedControl.currentSpeed).toEqual('0.75');
                 });
