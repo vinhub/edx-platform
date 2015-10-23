@@ -200,7 +200,7 @@
                 it('trigger speedChange event', function () {
                     spyOnEvent(state.el, 'speedchange');
 
-                    $('li[data-speed="0.75"] .speed-options').click();
+                    $('li[data-speed="0.75"] .speed-option').click();
                     expect('speedchange').toHaveBeenTriggeredOn(state.el);
                     expect(state.videoSpeedControl.currentSpeed).toEqual('0.75');
                 });
