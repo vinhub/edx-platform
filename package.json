@@ -7,6 +7,6 @@
   },
   "devDependencies": {
     "jshint": "^2.7.0",
-    "edx-custom-a11y-rules": "edx/edx-custom-a11y-rules.git#v0.1.0"
+    "edx-custom-a11y-rules": "edx/edx-custom-a11y-rules.git#38aa64d37d162a018e28186b005633f0ee6c72d2"
   }
 }
