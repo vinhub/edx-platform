@@ -1,4 +1,5 @@
 (function (undefined) {
+    'use strict';
     describe('VideoSpeedControl', function () {
         var state, oldOTBD;
 
@@ -57,27 +58,11 @@
             });
 
             describe('when running on non-touch based device', function () {
-                var speedControl, speedEntries, speedButton,
+                var speedControl, speedEntries, speedButton, speedsContainer,
                     KEY = $.ui.keyCode,
 
                     keyPressEvent = function(key) {
                         return $.Event('keydown', {keyCode: key});
-                    },
-
-                    // Get previous element in array or cyles back to the last
-                    // if it is the first.
-                    previousSpeed = function(index) {
-                        return speedEntries.eq(index < 1 ?
-                                               speedEntries.length - 1 :
-                                               index - 1);
-                    },
-
-                    // Get next element in array or cyles back to the first if
-                    // it is the last.
-                    nextSpeed = function(index) {
-                        return speedEntries.eq(index >= speedEntries.length-1 ?
-                                               0 :
-                                               index + 1);
                     };
 
                 beforeEach(function () {
@@ -85,7 +70,7 @@
                     speedControl = $('.speeds');
                     speedButton = $('.speed-button');
                     speedsContainer = $('.video-speeds');
-                    speedEntries = speedsContainer.find('.speed-options');
+                    speedEntries = speedsContainer.find('.speed-option');
                 });
 
                 it('open/close the speed menu on mouseenter/mouseleave',
@@ -140,8 +125,7 @@
 
                 it('UP and DOWN keydown function as expected on speed entries',
                    function () {
-                    var lastEntry = speedEntries.length-1,
-                        speed_0_75 = speedEntries.filter(':contains("0.75x")'),
+                    var speed_0_75 = speedEntries.filter(':contains("0.75x")'),
                         speed_1_0 = speedEntries.filter(':contains("1.0x")');
 
                     // First open menu
