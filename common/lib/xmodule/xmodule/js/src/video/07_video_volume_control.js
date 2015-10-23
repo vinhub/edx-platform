@@ -40,7 +40,8 @@ function() {
         template: [
             '<div class="volume">',
                 '<button class="control" aria-disabled="false" aria-label="',
-                    gettext('Volume: Click on this button to mute or unmute this video or press UP or DOWN buttons to increase or decrease volume level.'),
+                    gettext('Volume: Click on this button to mute or unmute this video or press UP or ',
+                        'DOWN buttons to increase or decrease volume level.'),
                     '" role="application" aria-expanded="false">',
                     '<span class="icon-fallback-img">',
                         '<span class="icon fa fa-volume-up" aria-hidden="true"></span>',

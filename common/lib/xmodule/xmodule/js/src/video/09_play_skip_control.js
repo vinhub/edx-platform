@@ -82,7 +82,7 @@ define('video/09_play_skip_control.js', [], function() {
                     .removeClass('icon-play')
                     .addClass('icon-step-forward')
                 .find('.control-text')
-                    .text(gettext('Skip'))
+                    .text(gettext('Skip'));
             // Disable possibility to pause the video.
             this.state.el.find('video').off('click');
         }
