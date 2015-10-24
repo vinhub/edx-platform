@@ -41,8 +41,7 @@ site_status_msg = get_site_status_msg(course_id)
     <h1 class="logo" itemscope="" itemtype="http://schema.org/Organization">
       <a href="${marketing_link('ROOT')}" title="Home page" itemprop="url">
         <%block name="navigation_logo">
-            <img src="${static.url(branding.get_logo_url())}" alt="${platform_name()}" title="${platform_name()}" itemprop="url" />
-            <span class="sr">${_("Home Page")}</span>
+            <img src="${static.url(branding.get_logo_url())}" alt="${platform_name()} ${_("Home Page")}" itemprop="logo" />
         </%block>
       </a>
     </h1>
