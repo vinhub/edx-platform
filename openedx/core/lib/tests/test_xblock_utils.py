@@ -11,7 +11,8 @@ from xmodule.x_module import XModule, XModuleDescriptor
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory, LibraryFactory
 from lms.djangoapps.lms_xblock.runtime import quote_slashes
-from opaque_keys.edx.locations import SlashSeparatedCourseKey
+from opaque_keys.edx.keys import CourseKey, UsageKey
+from opaque_keys.edx.locator import CourseLocator
 from courseware.models import StudentModule
 
 
@@ -21,12 +22,9 @@ from openedx.core.lib.xblock_utils import (
     wrap_xblock,
     replace_jump_to_id_urls,
     replace_course_urls,
+    replace_static_urls,
     grade_histogram
 )
-
-# TODO
-# alphabetize the imports
-# docstring all the classes and methods
 
 
 class TestXblockUtils(ModuleStoreTestCase):
@@ -82,8 +80,9 @@ class TestXblockUtils(ModuleStoreTestCase):
         self.assertEqual(test_wrap_output.resources[1].data, 'alert("Test!");')
 
     def test_replace_jump_to_id_urls(self):
+        test_course = CourseKey.from_string('TestX/TS01/2015')
         test_replace = replace_jump_to_id_urls(
-            course_id=SlashSeparatedCourseKey('TestX', 'TS01', '2015'), 
+            course_id=CourseKey.from_string('TestX/TS01/2015'), 
             jump_to_id_base_url=u'/base_url/',
             block=CourseFactory.create(),
             view='studio_view',
@@ -94,7 +93,7 @@ class TestXblockUtils(ModuleStoreTestCase):
         self.assertEqual(test_replace.content, u'<a href="/base_url/id">')
 
     def test_replace_course_urls(self):
-        test_course = SlashSeparatedCourseKey('TestX', 'TS01', '2015')
+        test_course = CourseKey.from_string('TestX/TS01/2015')
         test_replace = replace_course_urls(
             course_id=test_course, 
             block=CourseFactory.create(),
@@ -105,12 +104,39 @@ class TestXblockUtils(ModuleStoreTestCase):
         self.assertIsInstance(test_replace, Fragment)
         self.assertEqual(test_replace.content, u'<a href="/courses/TestX/TS01/2015/id">')
 
+    def test_replace_static_urls(self):
+        test_course = CourseKey.from_string('TestX/TS01/2015')
+        test_replace = replace_static_urls(
+            data_dir=None,
+            course_id=test_course, 
+            block=CourseFactory.create(),
+            view='studio_view',
+            frag=Fragment(u'<a href="/static/id">'),
+            context=None
+        )
+        self.assertIsInstance(test_replace, Fragment)
+        self.assertEqual(test_replace.content, u'<a href="/c4x/TestX/TS01/asset/id">')
+
     def test_grade_histogram(self):
+        test_course = CourseKey.from_string('TestX/TS01/2015')
+        usage_key = test_course.make_usage_key('problem', 'first_problem')
         new_grade = StudentModule.objects.create(
             student_id=1,
             grade=100,
-            module_state_key='i4x://foo/bar/baz/some_module'
+            module_state_key=usage_key
+        )
+        new_grade = StudentModule.objects.create(
+            student_id=2,
+            grade=50,
+            module_state_key=usage_key
         )
 
-        #grades = grade_histogram(u'i4x://foo/bar/baz/some_module')
+        grades = grade_histogram(usage_key)
+        self.assertEqual(grades[0], (50.0, 1))
+        self.assertEqual(grades[1], (100.0, 1))
 
+    def test_add_staff_markup(self):
+        pass
+
+    def test_get_course_update_items(self):
+        pass
