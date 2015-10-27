@@ -141,8 +141,9 @@ define('video/04_video_full_screen.js', [], function () {
             .find('.icon')
                 .removeClass('fa-compress')
                 .addClass('fa-arrows-alt')
-            .find('.control-text')
-                .text(gettext('Fill browser'));
+                .find('.control-text')
+                    .text(gettext('Fill browser'));
+
         this.el.trigger('fullscreen', [this.isFullScreen]);
     }
 
@@ -158,8 +159,9 @@ define('video/04_video_full_screen.js', [], function () {
             .find('.icon')
                 .removeClass('fa-arrows-alt')
                 .addClass('fa-compress')
-            .find('.control-text')
-                .text(gettext('Exit full browser'));
+                .find('.control-text')
+                    .text(gettext('Exit full browser'));
+
         this.el.trigger('fullscreen', [this.isFullScreen]);
     }
 

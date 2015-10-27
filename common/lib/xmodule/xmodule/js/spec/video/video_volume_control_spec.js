@@ -284,21 +284,21 @@ describe('VideoVolumeControl', function () {
 
         it('nothing happens if ALT+keyUp are pushed down', function () {
             assertVolumeIsNotChanged({
-                keyCode: $.ui.keyCode.UP,
+                keyCode: KEY.UP,
                 altKey: true
             });
         });
 
         it('nothing happens if SHIFT+keyUp are pushed down', function () {
             assertVolumeIsNotChanged({
-                keyCode: $.ui.keyCode.UP,
+                keyCode: KEY.UP,
                 shiftKey: true
             });
         });
 
         it('nothing happens if SHIFT+keyDown are pushed down', function () {
             assertVolumeIsNotChanged({
-                keyCode: $.ui.keyCode.DOWN,
+                keyCode: KEY.DOWN,
                 shiftKey: true
             });
         });
@@ -312,8 +312,8 @@ describe('VideoVolumeControl', function () {
 
         it('nothing happens if ALT+ENTER are pushed down', function () {
             var isMuted = volumeControl.getMuteStatus();
-            $('.volume > .control').trigger(jQuery.Event("keydown", {
-                keyCode: $.ui.keyCode.ENTER,
+            $('.volume .control').trigger(jQuery.Event("keydown", {
+                keyCode: KEY.ENTER,
                 altKey: true
             }));
             expect(volumeControl.getMuteStatus()).toEqual(isMuted);

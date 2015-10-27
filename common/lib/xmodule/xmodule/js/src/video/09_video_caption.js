@@ -51,8 +51,8 @@
                     '</button>',
                     '<div class="lang menu-container">',
                         '<button class="control language-menu" aria-label="',
-                            gettext('Language: Press the UP arrow key to enter the language menu, ',
-                                'then use UP and DOWN arrow keys to navigate language options. Press ',
+                            gettext('Language: Press the UP arrow key to enter the language menu, ' +
+                                'then use UP and DOWN arrow keys to navigate language options. Press ' +
                                 'ENTER to change to the selected language.'),
                             '" aria-disabled="false" aria-pressed="false" role="application">',
                             '<span class="icon-fallback-img">',

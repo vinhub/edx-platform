@@ -31,7 +31,7 @@ function (Iterator) {
         template: [
             '<div class="speeds menu-container">',
                 '<button class="control speed-button" aria-label="',
-                    gettext('Speed: Press UP to enter the speed menu then use the UP and DOWN arrow keys ',
+                    gettext('Speed: Press UP to enter the speed menu then use the UP and DOWN arrow keys ' +
                         'to navigate the different speeds. Press ENTER to change to the selected speed.'),
                     '" aria-disabled="false" aria-expanded="false" role="application">',
                     '<span class="icon-fallback-img">',
