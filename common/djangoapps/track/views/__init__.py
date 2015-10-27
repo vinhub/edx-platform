@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 
 import pytz
 
@@ -17,6 +18,8 @@ from track import contexts
 from track import shim
 from track.models import TrackingLog
 from eventtracking import tracker as eventtracker
+
+log = logging.getLogger(__name__)
 
 
 def log_event(event):
@@ -76,6 +79,7 @@ def user_track(request):
     context_override['page'] = page
 
     with eventtracker.get_tracker().context('edx.course.browser', context_override):
+        log.info(u"Event emitted '%s' for %s at page: %s ", name, username, page)
         eventtracker.emit(name=name, data=data)
 
     return HttpResponse('success')
