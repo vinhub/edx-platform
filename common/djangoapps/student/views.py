@@ -706,7 +706,6 @@ def dashboard(request):
 
     return render_to_response('dashboard.html', context)
 
-
 def _create_recent_enrollment_message(course_enrollments, course_modes):  # pylint: disable=invalid-name
     """
     Builds a recent course enrollment message.
@@ -2271,3 +2270,128 @@ def change_email_settings(request):
         track.views.server_track(request, "change-email-settings", {"receive_emails": "no", "course": course_id}, page='dashboard')
 
     return JsonResponse({"success": True})
+
+
+def _get_xseries_programs(username, user_enrolled_courses): # pylint: disable=invalid-name
+    """Connect with programs api and receives the data.
+    Parse the data for student dashboard xseries programs.
+    """
+    # TODO dummy method will be replace with actuall api call.
+    expected_output = dummy_method_for_test_cases()
+    programs_data = {}
+    for course_key, course_data in expected_output.items():
+        if course_data.get('status') == 'active':
+            for course_codes_data in course_data.get('course_codes', []):
+                programs_data[course_key] = {
+                    'run_modes_count': len(course_codes_data.get('run_modes', [])),
+                    'marketing_slug': course_codes_data.get('marketing_slug', ''),
+                    'display_name': course_codes_data.get('display_name', ''),
+                    'category': course_data.get('category', 'xseries'),
+                }
+    return programs_data
+
+def dummy_method_for_test_cases():
+    # make the call to openedx/core/lib/programs/utils and get the programs
+    #response = get_course_programs_for_dashboard(username, user_enrolled_courses)
+
+    expected_output = {
+        'course-v1:ManTestX+ManTest2+2014': {
+            'category': 'xseries',
+            'status': 'active',
+            'course_codes': [
+                {
+                    'organization': {'display_name': 'Test Organization 1', 'key': 'edX'},
+                    'marketing_slug': 'manual-test-1',
+                    'display_name': 'Manual Test',
+                    'key': 'TEST_A',
+                    'run_modes': [
+                        {'sku': '', 'mode_slug': 'ABC_1', 'course_key': 'edX/DemoX_1/Run_1'},
+                        {'sku': '', 'mode_slug': 'ABC_2', 'course_key': 'edX/DemoX_2/Run_2'},
+                        {'sku': '', 'mode_slug': 'ABC_3', 'course_key': 'edX/DemoX_2/Run_3'},
+                    ]
+                }
+            ],
+            'subtitle': 'Dummy program 1 for testing',
+            'name': 'First Program'
+        },
+        'course-v1:ManTestX+ManTest1+2014': {
+            'category': 'xseries',
+            'status': 'active',
+            'course_codes': [
+                {
+                    'organization': {'display_name': 'Test Organization 1', 'key': 'edX'},
+                    'marketing_slug': 'fake-marketing-slug-xseries-1',
+                    'display_name': 'Demo XSeries Program 1',
+                    'key': 'TEST_A',
+                    'run_modes': [
+                        {'sku': '', 'mode_slug': 'ABC_1', 'course_key': 'edX/DemoX_1/Run_1'},
+                        {'sku': '', 'mode_slug': 'ABC_2', 'course_key': 'edX/DemoX_2/Run_2'},
+                    ]
+                }
+            ],
+            'subtitle': 'Dummy program 2 for testing',
+            'name': 'Second Program'
+        },
+        'course-v1:edX+DemoX+Demo_Course': {
+            'category': 'xseries',
+            'status': 'active',
+            'course_codes': [
+                {
+                    'organization': {'display_name': 'D Organization 1', 'key': 'edX'},
+                    'marketing_slug': 'demo-marketing-slug-xseries-1',
+                    'display_name': 'Demo XSeries Program 1',
+                    'key': 'TEST_A',
+                    'run_modes': [
+                        {'sku': '', 'mode_slug': 'ABC_1', 'course_key': 'edX/DemoX_1/Run_1'},
+                        {'sku': '', 'mode_slug': 'ABC_2', 'course_key': 'edX/DemoX_2/Run_2'},
+                        {'sku': '', 'mode_slug': 'ABC_3', 'course_key': 'edX/DemoX_2/Run_2'},
+                        {'sku': '', 'mode_slug': 'ABC_4', 'course_key': 'edX/DemoX_2/Run_2'},
+                    ]
+                }
+            ],
+            'subtitle': 'Actual program for Demo',
+            'name': 'Third Program'
+        },
+        'edX/DemoX/Demo_Course': {
+            'category': 'xseries',
+            'status': 'active',
+            'course_codes': [
+                {
+                    'organization': {'display_name': 'D Organization 1', 'key': 'edX'},
+                    'marketing_slug': 'demo-marketing-slug-xseries-1',
+                    'display_name': 'Demo XSeries Program 1',
+                    'key': 'TEST_A',
+                    'run_modes': [
+                        {'sku': '', 'mode_slug': 'ABC_1', 'course_key': 'edX/DemoX_1/Run_1'},
+                        {'sku': '', 'mode_slug': 'ABC_2', 'course_key': 'edX/DemoX_2/Run_2'},
+                        {'sku': '', 'mode_slug': 'ABC_3', 'course_key': 'edX/DemoX_2/Run_2'},
+                        {'sku': '', 'mode_slug': 'ABC_4', 'course_key': 'edX/DemoX_2/Run_2'},
+                    ]
+                }
+            ],
+            'subtitle': 'Actual program for Demo',
+            'name': 'Third Program'
+        },
+        'course-v1:ManTestX+ManTest3+2014': {
+            'category': 'xseries',
+            'status': 'active',
+            'course_codes': [
+                {
+                    'organization': {'display_name': 'D Organization 1', 'key': 'edX'},
+                    'marketing_slug': 'demo-marketing-slug-xseries-1',
+                    'display_name': 'Demo XSeries Program 1',
+                    'key': 'TEST_A',
+                    'run_modes': [
+                        {'sku': '', 'mode_slug': 'ABC_1', 'course_key': 'edX/DemoX_1/Run_1'},
+                        {'sku': '', 'mode_slug': 'ABC_2', 'course_key': 'edX/DemoX_2/Run_2'},
+                        {'sku': '', 'mode_slug': 'ABC_3', 'course_key': 'edX/DemoX_2/Run_2'},
+                        {'sku': '', 'mode_slug': 'ABC_4', 'course_key': 'edX/DemoX_2/Run_2'},
+                    ]
+                }
+            ],
+            'subtitle': 'Actual program for Demo',
+            'name': 'Third Program'
+        },
+    }
+
+    return

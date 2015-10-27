@@ -23,6 +23,7 @@ from student.views import (
     process_survey_link,
     _cert_info,
     complete_course_mode_info,
+    _get_xseries_programs
 )
 from student.tests.factories import UserFactory, CourseModeFactory
 from util.testing import EventTestMixin
@@ -37,6 +38,7 @@ from certificates.models import CertificateStatuses  # pylint: disable=import-er
 from certificates.tests.factories import GeneratedCertificateFactory  # pylint: disable=import-error
 from verify_student.models import SoftwareSecurePhotoVerification
 import shoppingcart  # pylint: disable=import-error
+from openedx.core.djangoapps.programs.models import ProgramsApiConfig
 
 # Explicitly import the cache from ConfigurationModel so we can reset it after each test
 from config_models.models import cache
@@ -930,3 +932,190 @@ class AnonymousLookupTable(ModuleStoreTestCase):
         real_user = user_by_anonymous_id(anonymous_id)
         self.assertEqual(self.user, real_user)
         self.assertEqual(anonymous_id, anonymous_id_for_user(self.user, course2.id, save=False))
+
+
+@ddt.ddt
+class DashboardTestXSeriesPrograms(ModuleStoreTestCase):
+    """
+    Tests for dashboard for xseries program courses. Enroll student into
+    three programs and then try different combinations to see xseries upsell
+    messages are appearing.
+    """
+    def setUp(self):
+        super(DashboardTestXSeriesPrograms, self).setUp()
+
+        self.user = UserFactory.create(username="jack", email="jack@fake.edx.org", password='test')
+        self.course = CourseFactory.create()
+        self.course_two = CourseFactory.create()
+        self.course_three = CourseFactory.create()
+
+        CourseModeFactory.create(
+            course_id=self.course.id,
+            mode_slug='verified',
+            mode_display_name='Verified',
+            expiration_datetime=datetime.now(pytz.UTC) + timedelta(days=1)
+        )
+        self.client = Client()
+        cache.clear()
+
+    def _create_program_config(self, **kwargs):
+        """
+        DRY helper.  Create a new ProgramsApiConfig with self.DEFAULTS, updated
+        with any kwarg overrides.
+        """
+        data = dict(
+            internal_service_url="http://internal/",
+            public_service_url="http://public/",
+            api_version_number=1
+        )
+        ProgramsApiConfig(**dict(data, **kwargs)).save()
+
+    def _create_program_data(self, data):
+        """Dry method to create testing programs data."""
+        programs = {}
+        for course in data:
+            programs[unicode(course[0])] = {
+                'category': 'xseries',
+                'status': course[1],
+                'course_codes': [
+                    {
+                        'organization': {'display_name': 'Test Organization 1', 'key': 'edX'},
+                        'marketing_slug': 'manual-test-1',
+                        'display_name': 'Manual Test',
+                        'key': 'TEST_A',
+                        'run_modes': [
+                            {'sku': '', 'mode_slug': 'ABC_1', 'course_key': 'edX/DemoX_1/Run_1'},
+                            {'sku': '', 'mode_slug': 'ABC_2', 'course_key': 'edX/DemoX_2/Run_2'},
+                            {'sku': '', 'mode_slug': 'ABC_3', 'course_key': 'edX/DemoX_2/Run_3'},
+                        ]
+                    }
+                ],
+                'subtitle': 'Dummy program 1 for testing',
+                'name': 'First Program'
+            }
+
+        return programs
+
+    @ddt.data(
+        ('active', [{'sku': ''}, {'sku': ''}, {'sku': ''}, {'sku': ''}], 4, 'slug1'),
+        ('active', [{'sku': ''}, {'sku': ''}, {'sku': ''}], 3, 'slug2'),
+        ('active', [], 0, ''),
+        ('inactive', [{'sku': ''}, {'sku': ''}, {'sku': ''}, {'sku': ''}], 4, 'slug3'),
+    )
+    @ddt.unpack
+    def test_get_xseries_programs_method(self, status, run_modes, run_modes_count, slug):
+        with patch('student.views.dummy_method_for_test_cases') as mock_data:
+            mock_data.return_value = {
+                unicode('course-v1:ManTestX+ManTest2+2014'): {
+                    'category': 'xseries',
+                    'status': status,
+                    'course_codes': [
+                        {
+                            'organization': {'display_name': 'Test Organization 1', 'key': 'edX'},
+                            'marketing_slug': slug,
+                            'display_name': 'Manual Test',
+                            'key': 'TEST_A',
+                            'run_modes': run_modes
+                        }
+                    ],
+                    'subtitle': 'Dummy program 1 for testing',
+                    'name': 'First Program'
+                }
+            }
+            parse_data = _get_xseries_programs(
+                self.user, [unicode('course-v1:ManTestX+ManTest2+2014'), 'edx/demox/DemoCourse']
+            )
+
+            if status == 'inactive':
+                self.assertDictEqual({}, parse_data)
+            else:
+                self.assertDictEqual(
+                    {
+                        'course-v1:ManTestX+ManTest2+2014': {
+                            'run_modes_count': run_modes_count,
+                            'marketing_slug': slug,
+                            'display_name': 'Manual Test',
+                            'category': 'xseries'
+                        }
+                    },
+                    parse_data
+                )
+
+    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
+    def test_program_courses_on_dashboard_without_configuration(self):
+        """If programs configuration is disabled than xseries upsell messages
+        will not appear on student dashboard.
+        """
+        CourseEnrollment.enroll(self.user, self.course.id)
+        self.client.login(username="jack", password="test")
+        response = self.client.get(reverse('dashboard'))
+        self.assertEquals(response.status_code, 200)
+        self.assertIn('Pursue a Certificate of Achievement to highlight', response.content)
+        self._assert_responses(response, 0)
+
+    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
+    @ddt.data('verified', 'honor')
+    def test_modes_program_courses_on_dashboard_with_configuration(self, mode):
+        """If configuration is enabled than student can see only those course with
+        xseries upsell messages which are active in xseries programs.
+        """
+        CourseEnrollment.enroll(self.user, self.course.id, mode=mode)
+        CourseEnrollment.enroll(self.user, self.course_two.id, mode=mode)
+
+        self.client.login(username="jack", password="test")
+        self._create_program_config(enabled=True, enable_student_dashboard=True)
+
+        with patch('student.views.dummy_method_for_test_cases') as mock_data:
+            mock_data.return_value = self._create_program_data(
+                [(self.course.id, 'active'), (self.course_two.id, 'inactive')]
+            )
+            response = self.client.get(reverse('dashboard'))
+            # Count total number of courses appearing on page.
+            self.assertContains(response, 'course-container', 2)
+            self._assert_responses(response, 1)
+
+            # For verified enrollment button class will be base-btn for others it will be border-btn
+            if mode == 'verified':
+                self.assertIn('xseries-base-btn', response.content)
+            else:
+                self.assertIn('xseries-border-btn', response.content)
+
+    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
+    @ddt.data(
+        ('inactive', 'inactive', 'inactive', 3, 0),
+        ('active', 'inactive', 'inactive', 3, 1),
+        ('active', 'active', 'inactive', 3, 2),
+        ('active', 'active', 'active', 3, 3),
+    )
+    @ddt.unpack
+    def test_different_programs_on_dashboard(self, status1, status2, status3, count, xseries_count):
+        """Testing upsell messages will different statuses."""
+
+        CourseEnrollment.enroll(self.user, self.course.id, mode='verified')
+        CourseEnrollment.enroll(self.user, self.course_two.id, mode='honor')
+        CourseEnrollment.enroll(self.user, self.course_three.id, mode='honor')
+
+        self.client.login(username="jack", password="test")
+        self._create_program_config(enabled=True, enable_student_dashboard=True)
+
+        with patch('student.views.dummy_method_for_test_cases') as mock_data:
+            mock_data.return_value = self._create_program_data(
+                [(self.course.id, status1),
+                 (self.course_two.id, status2),
+                 (self.course_three.id, status3)]
+            )
+
+            response = self.client.get(reverse('dashboard'))
+            # Count total number of courses appearing on page.
+            self.assertContains(response, 'course-container', count)
+            self._assert_responses(response, xseries_count)
+
+    def _assert_responses(self, response, count):
+        """Dry method to compare different strings."""
+        self.assertContains(response, 'label-xseries-association', count)
+        self.assertContains(response, 'btn xseries-', count)
+        self.assertContains(response, 'XSeries Program Course', count)
+        self.assertContains(response, 'XSeries Program: Interested in more courses in this subject?', count)
+        self.assertContains(response, 'This course is 1 of 3 courses in the', count)
+        self.assertContains(response, 'Manual Test', count)
+        self.assertContains(response, 'View XSeries Details', count)

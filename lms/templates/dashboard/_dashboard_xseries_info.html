@@ -1,0 +1,36 @@
+<%page args="course_program_info, program_marketing_url, enrollment_mode" />
+<%!
+    from urlparse import urljoin
+    from django.utils.translation import ugettext as _
+%>
+<%namespace name='static' file='../static_content.html'/>
+<% program_marketing_url = urljoin(program_marketing_url, course_program_info['category'] +'/{}').format(course_program_info['marketing_slug'])  %>
+<div class="message message-status is-shown credit-message">
+    <div class="xseries-action">
+        <div class="message-copy xseries-msg">
+            <p>
+                <b class="message-copy-bold">${_("XSeries Program: Interested in more courses in this subject?")}</b>
+            <p>
+            <p class="message-copy">
+                ${_("This course is 1 of {run_modes_count} courses in the {link_start}{course_display}{link_end}.").format(
+                    run_modes_count=course_program_info['run_modes_count'],
+                    link_start='<a href="{}">'.format(program_marketing_url),
+                    link_end='</a>',
+                    course_display=course_program_info['display_name'],
+                )}
+            </p>
+
+        </div>
+        <%
+            xseries_btn_class = "xseries-border-btn"
+            if enrollment_mode == "verified":
+                xseries_btn_class = "xseries-base-btn";
+        %>
+        <a class="btn ${xseries_btn_class}" href="${program_marketing_url}" target="_blank">
+            <i class="action-xseries-icon"></i>
+            <span>
+                ${_("View XSeries Details")}
+            </span>
+        </a>
+    </div>
+</div>
