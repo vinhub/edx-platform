@@ -51,9 +51,8 @@
                     '</button>',
                     '<div class="lang menu-container">',
                         '<button class="control language-menu" aria-label="',
-                            gettext('Language: Press the UP arrow key to enter the language menu, ' +
-                                'then use UP and DOWN arrow keys to navigate language options. Press ' +
-                                'ENTER to change to the selected language.'),
+                            /* jshint maxlen:250 */
+                            gettext('Language: Press the UP arrow key to enter the language menu, then use UP and DOWN arrow keys to navigate language options. Press ENTER to change to the selected language.'),
                             '" aria-disabled="false" aria-pressed="false" role="application">',
                             '<span class="icon-fallback-img">',
                                 '<span class="icon fa fa-caret-left" aria-hidden="true"></span>',
@@ -68,8 +67,8 @@
 
             template: [
                 '<ol id="transcript-captions" class="subtitles" aria-label="',
-                    gettext('Activating an item in this group will spool the video to the ',
-                        'corresponding time point. To skip transcript, go to previous item.'),
+                    /* jshint maxlen:200 */
+                    gettext('Activating an item in this group will spool the video to the corresponding time point. To skip transcript, go to previous item.'),
                     '">',
                     '<li></li>',
                 '</ol>'
