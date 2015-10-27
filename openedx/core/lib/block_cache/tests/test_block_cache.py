@@ -39,16 +39,15 @@ class TestBlockCache(TestCase, ChildrenMapTestMixin):
             return 't1.val1.' + unicode(block_key)
 
         @classmethod
-        def collect(self, block_structure):
+        def collect(cls, block_structure):
             """
             Sets transformer block data for each block in the structure
             as it is visited using topological traversal.
             """
-            list(
-                block_structure.topological_traversal(
-                    get_result=lambda block_key: block_structure.set_transformer_block_data(
-                        block_key, self, self.block_key(), self.block_val(block_key)
-                    )))
+            for block_key in block_structure.topological_traversal():
+                block_structure.set_transformer_block_data(
+                    block_key, cls, cls.block_key(), cls.block_val(block_key)
+                )
 
         def transform(self, user_info, block_structure):
             """
@@ -68,10 +67,8 @@ class TestBlockCache(TestCase, ChildrenMapTestMixin):
                     ) == self.block_val(block_key)
                 )
 
-            list(
-                block_structure.topological_traversal(
-                    get_result=lambda block_key: assert_collected_value(block_key)
-                ))
+            for block_key in block_structure.topological_traversal():
+                assert_collected_value(block_key)
 
     def setUp(self):
         super(TestBlockCache, self).setUp()
@@ -107,6 +104,6 @@ class TestBlockCache(TestCase, ChildrenMapTestMixin):
             )
             self.assert_block_structure(block_structure, self.children_map)
             if iteration == 0:
-                self.assertTrue(self.modulestore.get_items_call_count > 0)
+                self.assertGreater(self.modulestore.get_items_call_count, 0)
             else:
                 self.assertEquals(self.modulestore.get_items_call_count, 0)

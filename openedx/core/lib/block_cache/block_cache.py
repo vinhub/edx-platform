@@ -51,11 +51,11 @@ def get_blocks(cache, modulestore, user_info, root_block_key, transformers):
 
         # Collect data from each registered transformer.
         for transformer in TransformerRegistry.get_registered_transformers():
-            root_block_structure._add_transformer(transformer)
+            root_block_structure._add_transformer(transformer)  # pylint: disable=protected-access
             transformer.collect(root_block_structure)
 
         # Collect all fields that were requested by the transformers.
-        root_block_structure._collect_requested_xblock_fields()
+        root_block_structure._collect_requested_xblock_fields()  # pylint: disable=protected-access
 
         # Cache this information.
         BlockStructureFactory.serialize_to_cache(root_block_structure, cache)
@@ -65,7 +65,7 @@ def get_blocks(cache, modulestore, user_info, root_block_key, transformers):
         transformer.transform(user_info, root_block_structure)
 
     # Prune the block structure to remove any unreachable blocks.
-    root_block_structure._prune()
+    root_block_structure._prune()  # pylint: disable=protected-access
 
     return root_block_structure
 

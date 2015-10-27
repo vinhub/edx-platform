@@ -39,7 +39,7 @@ class BlockStructureTransformer(object):
         return cls.__name__
 
     @classmethod
-    def collect(self, block_structure):
+    def collect(cls, block_structure):
         """
         Collects and stores any xBlock and modulestore data into the
         block_structure that's necessary for later execution of the

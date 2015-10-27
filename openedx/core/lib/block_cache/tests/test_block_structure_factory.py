@@ -1,13 +1,14 @@
 """
 Tests for block_structure_factory.py
 """
+# pylint: disable=protected-access
 from mock import patch
 from unittest import TestCase
 
 from ..block_structure_factory import BlockStructureFactory
 from ..transformer_registry import TransformerRegistry
 from .test_utils import (
-    MockCache, MockModulestoreFactory, ChildrenMapTestMixin
+    MockCache, MockModulestoreFactory, MockTransformer, ChildrenMapTestMixin
 )
 
 
@@ -24,13 +25,17 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
             root_block_key=0, modulestore=self.modulestore
         )
 
-        self.registered_transformers = TransformerRegistry.get_registered_transformers()
+        self.transformers = [MockTransformer]
+        mock_registry = patch('openedx.core.lib.block_cache.transformer_registry.TransformerRegistry.get_available_plugins')
+        mock_registry.return_value = {transformer.name(): transformer for transformer in self.transformers}
+        self.addCleanup(mock_registry.stop)
+        mock_registry.start()
 
     def add_transformers(self):
         """
         Add each registered transformer to the block structure.
         """
-        for transformer in self.registered_transformers:
+        for transformer in self.transformers:
             self.block_structure._add_transformer(transformer)
             self.block_structure.set_transformer_block_data(
                 usage_key=0, transformer=transformer, key='test', value='{} val'.format(transformer.name())
@@ -49,7 +54,7 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
                 BlockStructureFactory.create_from_cache(
                     root_block_key=0,
                     cache=cache,
-                    transformers=self.registered_transformers,
+                    transformers=self.transformers,
                 )
             )
             self.assertTrue(mock_logger.called)
@@ -61,7 +66,7 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
             BlockStructureFactory.create_from_cache(
                 root_block_key=0,
                 cache=cache,
-                transformers=self.registered_transformers,
+                transformers=self.transformers,
             )
         )
 
@@ -77,7 +82,7 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
         from_cache_block_structure = BlockStructureFactory.create_from_cache(
             root_block_key=0,
             cache=cache,
-            transformers=self.registered_transformers,
+            transformers=self.transformers,
         )
         self.assertIsNotNone(from_cache_block_structure)
         self.assert_block_structure(from_cache_block_structure, self.children_map)
@@ -93,6 +98,6 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
             BlockStructureFactory.create_from_cache(
                 root_block_key=0,
                 cache=cache,
-                transformers=self.registered_transformers
+                transformers=self.transformers
             )
         )

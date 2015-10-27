@@ -1,6 +1,7 @@
 """
 Module for factory class for BlockStructure objects.
 """
+# pylint: disable=protected-access
 from logging import getLogger
 
 from openedx.core.lib.cache_utils import zpickle, zunpickle
@@ -92,9 +93,9 @@ class BlockStructureFactory(object):
             zp_data_to_cache
         )
         logger.debug(
-            "Wrote BlockStructure {} to cache, size: {}".format(
-                block_structure.root_block_key, len(zp_data_to_cache)
-            )
+            "Wrote BlockStructure %s to cache, size: %s",
+            block_structure.root_block_key,
+            len(zp_data_to_cache),
         )
 
     @classmethod

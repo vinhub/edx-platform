@@ -1,7 +1,7 @@
 """
 Common utilities for tests in block_cache module
 """
-
+# pylint: disable=protected-access
 from ..transformer import BlockStructureTransformer
 
 
@@ -39,6 +39,7 @@ class MockModulestore(object):
     """
     def __init__(self):
         self.get_items_call_count = 0
+        self.blocks = None
 
     def set_blocks(self, blocks):
         """
@@ -50,7 +51,7 @@ class MockModulestore(object):
         """
         self.blocks = blocks
 
-    def get_item(self, block_key, depth=None):
+    def get_item(self, block_key, depth=None):  # pylint: disable=unused-argument
         """
         Returns the mock XBlock (MockXBlock) associated with the
         given block_key.
@@ -81,12 +82,12 @@ class MockCache(object):
         """
         return self.map.get(key, default)
 
-    def set_many(self, map):
+    def set_many(self, map_):
         """
         For each dictionary entry in the given map, updates the cache
         with that entry.
         """
-        for key, val in map.iteritems():
+        for key, val in map_.iteritems():
             self.set(key, val)
 
     def get_many(self, keys):

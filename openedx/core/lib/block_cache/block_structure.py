@@ -8,6 +8,7 @@ The following internal data structures are implemented:
     _BlockRelations - Data structure for a single block's relations.
     _BlockData - Data structure for a single block's data.
 """
+# pylint: disable=protected-access
 from collections import defaultdict
 from logging import getLogger
 
@@ -119,10 +120,9 @@ class BlockStructure(object):
     #--- Block structure traversal methods ---#
 
     def topological_traversal(
-        self,
-        get_result=None,
-        filter_func=None,
-        yield_descendants_of_unyielded=False,
+            self,
+            filter_func=None,
+            yield_descendants_of_unyielded=False,
     ):
         """
         Performs a topological sort of the block structure and yields
@@ -140,15 +140,13 @@ class BlockStructure(object):
             start_node=self.root_block_key,
             get_parents=self.get_parents,
             get_children=self.get_children,
-            get_result=get_result,
             filter_func=filter_func,
             yield_descendants_of_unyielded=yield_descendants_of_unyielded,
         )
 
     def post_order_traversal(
-        self,
-        get_result=None,
-        filter_func=None,
+            self,
+            filter_func=None,
     ):
         """
         Performs a post-order sort of the block structure and yields
@@ -165,7 +163,6 @@ class BlockStructure(object):
         return traverse_post_order(
             start_node=self.root_block_key,
             get_children=self.get_children,
-            get_result=get_result,
             filter_func=filter_func,
         )
 
@@ -182,11 +179,10 @@ class BlockStructure(object):
         pruned_block_relations = defaultdict(_BlockRelations)
         old_block_relations = self._block_relations
 
-        def do_for_each_block(block_key):
-            """
-            Function to execute for each reachable block in a post
-            order traversal of the old structure.
-            """
+        # Build the structure from the leaves up by doing a post-order
+        # traversal of the old structure, thereby encountering only
+        # reachable blocks.
+        for block_key in self.post_order_traversal():
             # If the block is in the old structure,
             if block_key in old_block_relations:
                 # Add it to the new pruned structure
@@ -197,11 +193,6 @@ class BlockStructure(object):
                 for child in old_block_relations[block_key].children:
                     if child in pruned_block_relations:
                         self._add_to_relations(pruned_block_relations, block_key, child)
-
-        # Build the structure from the leaves up by doing a post-order
-        # traversal of the old structure, thereby encountering only
-        # reachable blocks.
-        list(self.post_order_traversal(get_result=do_for_each_block))
 
         # Replace this structure's relations with the newly pruned one.
         self._block_relations = pruned_block_relations
@@ -444,7 +435,7 @@ class BlockStructureBlockData(BlockStructure):
 
         # Recreate the graph connections if descendants are to be kept.
         if keep_descendants:
-            [self._add_relation(parent, child) for child in children for parent in parents]
+            [self._add_relation(parent, child) for child in children for parent in parents]  # pylint: disable=expression-not-assigned
 
     def remove_block_if(self, removal_condition, keep_descendants=False, **kwargs):
         """
@@ -464,6 +455,10 @@ class BlockStructureBlockData(BlockStructure):
                 to topological_traversal.
         """
         def filter_func(block_key):
+            """
+            Filter function for removing blocks that satisfy the
+            removal_condition.
+            """
             if removal_condition(block_key):
                 self.remove_block(block_key, keep_descendants)
                 return False
