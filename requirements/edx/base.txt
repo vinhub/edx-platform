@@ -33,7 +33,7 @@ django-method-override==0.1.0
 #djangorestframework>=3.1,<3.2
 git+https://github.com/edx/django-rest-framework.git@3c72cb5ee5baebc4328947371195eae2077197b0#egg=djangorestframework==3.2.3
 
-django==1.8.4
+django==1.8.5
 elasticsearch==0.4.5
 facebook-sdk==0.4.0
 feedparser==5.1.3
