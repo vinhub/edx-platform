@@ -113,7 +113,7 @@ class CoursewareTest(UniqueCourseTest):
         self.courseware_page.verify_skip_to_container_exists()
 
         # Activate the link and expect focus to be on the #href
-        self.courseware_page.skip_to_main_content()
+        self.courseware_page.ensure_skip_link_sends_focus_to_container()
 
 
 class ProctoredExamTest(UniqueCourseTest):
