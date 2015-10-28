@@ -173,7 +173,7 @@ class ChildrenMapTestMixin(object):
         for the given children_map.
         """
         # create empty block structure
-        block_structure = block_structure_cls(root_block_key=0)
+        block_structure = block_structure_cls(root_block_usage_key=0)
 
         # _add_relation
         for parent, children in enumerate(children_map):

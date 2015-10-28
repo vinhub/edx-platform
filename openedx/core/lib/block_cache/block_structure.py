@@ -17,7 +17,7 @@ from openedx.core.lib.graph_traversals import traverse_topologically, traverse_p
 from .exceptions import TransformerException
 
 
-logger = getLogger(__name__)  # pylint: disable=C0103
+logger = getLogger(__name__)  # pylint: disable=invalid-name
 
 
 # A dictionary key value for storing a transformer's version number.
@@ -26,16 +26,17 @@ TRANSFORMER_VERSION_KEY = '_version'
 
 class _BlockRelations(object):
     """
-    Data structure to encapsulate parents and children relationship for
-    a single block.
+    Data structure to encapsulate relationships for a single block.
+
+    Attributes:
+        parents - a list of usage keys for this block's parent blocks
+        children - a list of usage keys for this block's child blocks
     """
     def __init__(self):
 
-        # List of usage keys of this block's parents.
         # list [UsageKey]
         self.parents = []
 
-        # List of usage keys of this block's children.
         # list [UsageKey]
         self.children = []
 
@@ -46,15 +47,15 @@ class BlockStructure(object):
     using the BlockStructureFactory and then used as the currency across
     Transformers.
 
-    This base class keeps track of the block structure's root_block_key,
+    This base class keeps track of the block structure's root_block_usage_key,
     the existence of the blocks, and their parents and children
     relationships (graph nodes and edges).
     """
-    def __init__(self, root_block_key):
+    def __init__(self, root_block_usage_key):
 
         # The usage key of the root block for this structure.
         # UsageKey
-        self.root_block_key = root_block_key
+        self.root_block_usage_key = root_block_usage_key
 
         # Map of a block's usage key to its block relations. The
         # existence of a block in the structure is determined by its
@@ -63,12 +64,13 @@ class BlockStructure(object):
         self._block_relations = defaultdict(_BlockRelations)
 
         # Add the root block.
-        self._add_block(self._block_relations, root_block_key)
+        self._add_block(self._block_relations, root_block_usage_key)
 
     def __iter__(self):
         """
         The default iterator for a block structure is a topological
-        traversal.
+        traversal since it's the more common case and we currently
+        need to support DAGs.
         """
         return self.topological_traversal()
 
@@ -137,7 +139,7 @@ class BlockStructure(object):
                 traverse_topologically method.
         """
         return traverse_topologically(
-            start_node=self.root_block_key,
+            start_node=self.root_block_usage_key,
             get_parents=self.get_parents,
             get_children=self.get_children,
             filter_func=filter_func,
@@ -161,7 +163,7 @@ class BlockStructure(object):
                 traverse_post_order method.
         """
         return traverse_post_order(
-            start_node=self.root_block_key,
+            start_node=self.root_block_usage_key,
             get_children=self.get_children,
             filter_func=filter_func,
         )
@@ -169,7 +171,7 @@ class BlockStructure(object):
     #--- Internal methods ---#
     # To be used within the block_cache framework or by tests.
 
-    def _prune(self):
+    def _prune_unreachable(self):
         """
         Mutates this block structure by removing any unreachable blocks.
         """
@@ -271,8 +273,8 @@ class BlockStructureBlockData(BlockStructure):
     Subclass of BlockStructure that is responsible for managing block
     and transformer data.
     """
-    def __init__(self, root_block_key):
-        super(BlockStructureBlockData, self).__init__(root_block_key)
+    def __init__(self, root_block_usage_key):
+        super(BlockStructureBlockData, self).__init__(root_block_usage_key)
 
         # Map of a block's usage key to its collected data, including
         # its xBlock fields and block-specific transformer data.
@@ -407,7 +409,7 @@ class BlockStructureBlockData(BlockStructure):
 
         Note: While the immediate relations of the block are updated
         (removed), all descendants of the block will remain in the
-        structure unless the _prune method is called.
+        structure unless the _prune_unreachable method is called.
 
         Arguments:
             usage_key (UsageKey) - Usage key of the block that is to be
@@ -496,8 +498,8 @@ class BlockStructureXBlockData(BlockStructureBlockData):
     designed and implemented generically so it can work with any
     interface and implementation of an xBlock.
     """
-    def __init__(self, root_block_key):
-        super(BlockStructureXBlockData, self).__init__(root_block_key)
+    def __init__(self, root_block_usage_key):
+        super(BlockStructureXBlockData, self).__init__(root_block_usage_key)
 
         # Map of a block's usage key to its instantiated xBlock.
         # dict {UsageKey: XBlock}

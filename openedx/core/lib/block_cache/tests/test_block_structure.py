@@ -57,7 +57,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
             def transform(self, user_info, block_structure):
                 pass
 
-        block_structure = BlockStructureXBlockData(root_block_key=0)
+        block_structure = BlockStructureXBlockData(root_block_usage_key=0)
 
         with self.assertRaisesRegexp(TransformerException, "VERSION attribute is not set"):
             block_structure._add_transformer(TestNonVersionedTransformer())
@@ -87,7 +87,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
         ]
 
         # create block structure
-        block_structure = BlockStructureXBlockData(root_block_key=0)
+        block_structure = BlockStructureXBlockData(root_block_usage_key=0)
 
         # set transformer data
         for t_info in transformers_info:
@@ -127,7 +127,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
         ]
 
         # add each block
-        block_structure = BlockStructureXBlockData(root_block_key=0)
+        block_structure = BlockStructureXBlockData(root_block_usage_key=0)
         for block in blocks:
             block_structure._add_xblock(block.location, block)
 
@@ -165,10 +165,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
     @ddt.unpack
     def test_remove_block(self, keep_descendants, block_to_remove, children_map):
         ### skip test if invalid
-        if (
-            (block_to_remove >= len(children_map)) or
-            (keep_descendants and block_to_remove == 0)
-        ):
+        if ((block_to_remove >= len(children_map)) or (keep_descendants and block_to_remove == 0)):
             return
 
         ### create structure
@@ -197,7 +194,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
         self.assert_block_structure(block_structure, removed_children_map, missing_blocks)
 
         ### prune the structure
-        block_structure._prune()
+        block_structure._prune_unreachable()
 
         ### compute and verify updated children_map
         pruned_children_map = deepcopy(removed_children_map)
@@ -205,10 +202,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
         if not keep_descendants:
             # update all descendants
             for child in children_map[block_to_remove]:
-                for block in traverse_post_order(
-                    child,
-                    get_children=lambda block: pruned_children_map[block],
-                ):
+                for block in traverse_post_order(child, get_children=lambda block: pruned_children_map[block]):
                     # add descendant to missing blocks and empty its
                     # children
                     missing_blocks.append(block)

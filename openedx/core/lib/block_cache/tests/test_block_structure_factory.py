@@ -6,7 +6,6 @@ from mock import patch
 from unittest import TestCase
 
 from ..block_structure_factory import BlockStructureFactory
-from ..transformer_registry import TransformerRegistry
 from .test_utils import (
     MockCache, MockModulestoreFactory, MockTransformer, ChildrenMapTestMixin
 )
@@ -22,11 +21,13 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
         self.modulestore = MockModulestoreFactory.create(self.children_map)
 
         self.block_structure = BlockStructureFactory.create_from_modulestore(
-            root_block_key=0, modulestore=self.modulestore
+            root_block_usage_key=0, modulestore=self.modulestore
         )
 
         self.transformers = [MockTransformer]
-        mock_registry = patch('openedx.core.lib.block_cache.transformer_registry.TransformerRegistry.get_available_plugins')
+        mock_registry = patch(
+            'openedx.core.lib.block_cache.transformer_registry.TransformerRegistry.get_available_plugins'
+        )
         mock_registry.return_value = {transformer.name(): transformer for transformer in self.transformers}
         self.addCleanup(mock_registry.stop)
         mock_registry.start()
@@ -52,7 +53,7 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
             # cached data does not have collected information for all registered transformers
             self.assertIsNone(
                 BlockStructureFactory.create_from_cache(
-                    root_block_key=0,
+                    root_block_usage_key=0,
                     cache=cache,
                     transformers=self.transformers,
                 )
@@ -64,7 +65,7 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
 
         self.assertIsNone(
             BlockStructureFactory.create_from_cache(
-                root_block_key=0,
+                root_block_usage_key=0,
                 cache=cache,
                 transformers=self.transformers,
             )
@@ -80,7 +81,7 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
         # test re-create from cache
         self.modulestore.get_items_call_count = 0
         from_cache_block_structure = BlockStructureFactory.create_from_cache(
-            root_block_key=0,
+            root_block_usage_key=0,
             cache=cache,
             transformers=self.transformers,
         )
@@ -93,10 +94,10 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
         self.add_transformers()
 
         BlockStructureFactory.serialize_to_cache(self.block_structure, cache)
-        BlockStructureFactory.remove_from_cache(root_block_key=0, cache=cache)
+        BlockStructureFactory.remove_from_cache(root_block_usage_key=0, cache=cache)
         self.assertIsNone(
             BlockStructureFactory.create_from_cache(
-                root_block_key=0,
+                root_block_usage_key=0,
                 cache=cache,
                 transformers=self.transformers
             )

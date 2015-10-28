@@ -81,7 +81,7 @@ class TestBlockCache(TestCase, ChildrenMapTestMixin):
     def test_get_blocks(self, mock_available_transforms):
         mock_available_transforms.return_value = {transformer.name(): transformer for transformer in self.transformers}
         block_structure = get_blocks(
-            self.mock_cache, self.modulestore, self.user_info, root_block_key=0, transformers=self.transformers
+            self.mock_cache, self.modulestore, self.user_info, root_block_usage_key=0, transformers=self.transformers
         )
         self.assert_block_structure(block_structure, self.children_map)
 
@@ -89,7 +89,7 @@ class TestBlockCache(TestCase, ChildrenMapTestMixin):
         mock_available_transforms.return_value = {}
         with self.assertRaisesRegexp(TransformerException, "requested transformers are not registered"):
             get_blocks(
-                self.mock_cache, self.modulestore, self.user_info, root_block_key=0, transformers=self.transformers
+                self.mock_cache, self.modulestore, self.user_info, root_block_usage_key=0, transformers=self.transformers
             )
 
     def test_block_caching(self, mock_available_transforms):
@@ -100,7 +100,7 @@ class TestBlockCache(TestCase, ChildrenMapTestMixin):
         for iteration in range(2):
             self.modulestore.get_items_call_count = 0
             block_structure = get_blocks(
-                cache, self.modulestore, self.user_info, root_block_key=0, transformers=self.transformers
+                cache, self.modulestore, self.user_info, root_block_usage_key=0, transformers=self.transformers
             )
             self.assert_block_structure(block_structure, self.children_map)
             if iteration == 0:

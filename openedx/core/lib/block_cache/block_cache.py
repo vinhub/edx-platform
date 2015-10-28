@@ -7,7 +7,7 @@ from .exceptions import TransformerException
 from .transformer_registry import TransformerRegistry
 
 
-def get_blocks(cache, modulestore, user_info, root_block_key, transformers):
+def get_blocks(cache, modulestore, user_info, root_block_usage_key, transformers):
     """
     Top-level function in the Block Cache framework that manages
     the cache (populating it and updating it when needed), calls the
@@ -23,7 +23,7 @@ def get_blocks(cache, modulestore, user_info, root_block_key, transformers):
             contains the data for the xBlock objects corresponding to
             the block structure.
 
-        root_block_key (UsageKey) - The usage_key for the root
+        root_block_usage_key (UsageKey) - The usage_key for the root
             of the block structure that is being accessed.
 
         transformers ([BlockStructureTransformer]) - The list of
@@ -41,13 +41,13 @@ def get_blocks(cache, modulestore, user_info, root_block_key, transformers):
         )
 
     # Load the cached block structure.
-    root_block_structure = BlockStructureFactory.create_from_cache(root_block_key, cache, transformers)
+    root_block_structure = BlockStructureFactory.create_from_cache(root_block_usage_key, cache, transformers)
 
     # On cache miss, execute the collect phase and update the cache.
     if not root_block_structure:
 
         # Create the block structure from the modulestore.
-        root_block_structure = BlockStructureFactory.create_from_modulestore(root_block_key, modulestore)
+        root_block_structure = BlockStructureFactory.create_from_modulestore(root_block_usage_key, modulestore)
 
         # Collect data from each registered transformer.
         for transformer in TransformerRegistry.get_registered_transformers():
@@ -65,14 +65,14 @@ def get_blocks(cache, modulestore, user_info, root_block_key, transformers):
         transformer.transform(user_info, root_block_structure)
 
     # Prune the block structure to remove any unreachable blocks.
-    root_block_structure._prune()  # pylint: disable=protected-access
+    root_block_structure._prune_unreachable()  # pylint: disable=protected-access
 
     return root_block_structure
 
 
-def clear_block_cache(cache, root_block_key):
+def clear_block_cache(cache, root_block_usage_key):
     """
     Removes the block structure associated with the given root block
     key.
     """
-    BlockStructureFactory.remove_from_cache(root_block_key, cache)
+    BlockStructureFactory.remove_from_cache(root_block_usage_key, cache)
