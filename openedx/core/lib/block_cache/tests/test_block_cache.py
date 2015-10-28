@@ -89,7 +89,11 @@ class TestBlockCache(TestCase, ChildrenMapTestMixin):
         mock_available_transforms.return_value = {}
         with self.assertRaisesRegexp(TransformerException, "requested transformers are not registered"):
             get_blocks(
-                self.mock_cache, self.modulestore, self.user_info, root_block_usage_key=0, transformers=self.transformers
+                self.mock_cache,
+                self.modulestore,
+                self.user_info,
+                root_block_usage_key=0,
+                transformers=self.transformers,
             )
 
     def test_block_caching(self, mock_available_transforms):

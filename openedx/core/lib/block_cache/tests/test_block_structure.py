@@ -165,7 +165,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
     @ddt.unpack
     def test_remove_block(self, keep_descendants, block_to_remove, children_map):
         ### skip test if invalid
-        if ((block_to_remove >= len(children_map)) or (keep_descendants and block_to_remove == 0)):
+        if (block_to_remove >= len(children_map)) or (keep_descendants and block_to_remove == 0):
             return
 
         ### create structure
