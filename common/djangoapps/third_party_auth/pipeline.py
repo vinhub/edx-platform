@@ -590,21 +590,26 @@ def login_analytics(strategy, auth_entry, *args, **kwargs):
     """ Sends login info to Segment """
 
     event_name = None
-    if auth_entry == AUTH_ENTRY_LOGIN:
+    if auth_entry == AUTH_ENTRY_LOGIN or auth_entry == AUTH_ENTRY_SUDO:
         event_name = 'edx.bi.user.account.authenticated'
     elif auth_entry in [AUTH_ENTRY_ACCOUNT_SETTINGS]:
         event_name = 'edx.bi.user.account.linked'
 
     if event_name is not None and hasattr(settings, 'LMS_SEGMENT_KEY') and settings.LMS_SEGMENT_KEY:
         tracking_context = tracker.get_tracker().resolve_context()
+        parameters = {
+            'category': "conversion",
+            'label': None,
+            'provider': getattr(kwargs['backend'], 'name'),     # pylint: disable=literal-used-as-attribute
+        }
+
+        if auth_entry == AUTH_ENTRY_SUDO:
+            parameters['is_sudo'] = True
+
         analytics.track(
             kwargs['user'].id,
             event_name,
-            {
-                'category': "conversion",
-                'label': None,
-                'provider': getattr(kwargs['backend'], 'name')
-            },
+            parameters,
             context={
                 'ip': tracking_context.get('ip'),
                 'Google Analytics': {

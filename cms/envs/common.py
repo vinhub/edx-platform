@@ -803,8 +803,17 @@ INSTALLED_APPS = (
 
     # Self-paced course configuration
     'openedx.core.djangoapps.self_paced',
+
+    # OAuth2 Provider
+    'provider',
+    'provider.oauth2',
 )
 
+############################ OAUTH2 Provider ###################################
+
+# OpenID Connect issuer ID. Normally the URL of the authentication endpoint.
+
+OAUTH_OIDC_ISSUER = 'https:/example.com/oauth2'
 
 ################# EDX MARKETING SITE ##################################
 

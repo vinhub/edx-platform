@@ -6,6 +6,9 @@ from django.db import models
 
 
 class Migration(SchemaMigration):
+    depends_on = (
+        ("oauth2", "0004_auto__add_index_accesstoken_token"),
+    )
 
     def forwards(self, orm):
         # Adding model 'ProviderApiPermissions'

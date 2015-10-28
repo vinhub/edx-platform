@@ -3940,6 +3940,7 @@ class TestCourseIssuedCertificatesData(SharedModuleStoreTestCase):
         super(TestCourseIssuedCertificatesData, self).setUp()
         self.instructor = InstructorFactory(course_key=self.course.id)
         self.client.login(username=self.instructor.username, password='test')
+        self.grant_sudo_access(unicode(self.course.id), 'test')
 
     def generate_certificate(self, course_id, mode, status):
         """
