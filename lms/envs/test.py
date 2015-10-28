@@ -219,6 +219,11 @@ CACHES = {
     'course_structure_cache': {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     },
+    'lms.course_blocks': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': os.path.join(tempfile.gettempdir(), 'course_blocks'),
+        'KEY_FUNCTION': 'util.memcache.safe_key',
+    },
 }
 
 # Dummy secret key for dev
