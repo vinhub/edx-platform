@@ -56,9 +56,11 @@ class CoursePage(PageObject):
         Checks to make sure the skip link skips to its href
         and the container receives focus.
         """
-        skip_to = self.q(css=".nav-skip").attrs('href')[0]
-        skip_href = skip_to.split('/')[-1]
-        self.q(css=skip_href).click
+        skip_link = self.q(css=".nav-skip")
+        skip_url = skip_link.attrs('href')[0]
+        skip_id = skip_url.split('/')[-1]
+        # from nose.tools import set_trace; set_trace()
+        skip_link.click()
         self.wait_for(
-            self.q(css=skip_href).is_focused, "Main content area is focusable'"
+            self.q(css=skip_id).is_focused, "Main content area is focusable"
         )

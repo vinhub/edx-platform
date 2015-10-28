@@ -9,7 +9,7 @@ define([
     return SearchResultsView.extend({
 
         el: '#courseware-search-results',
-        contentElement: '#course-content',
+        contentElement: '#content',
         resultsTemplateId: '#course_search_results-tpl',
         loadingTemplateId: '#search_loading-tpl',
         errorTemplateId: '#search_error-tpl',
