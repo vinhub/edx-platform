@@ -702,6 +702,7 @@ def dashboard(request):
         'courses_requirements_not_met': courses_requirements_not_met,
         'nav_hidden': True,
         'course_programs': course_programs,
+        'program_marketing_url': settings.MKTG_URLS.get('ROOT')
     }
 
     return render_to_response('dashboard.html', context)
@@ -2273,7 +2274,8 @@ def change_email_settings(request):
 
 
 def _get_xseries_programs(user, user_enrolled_courses): # pylint: disable=invalid-name
-    """ Return all programs related to a user.
+    """ Return a list of course key containing data required
+    for dashboard.
 
     Given a user and an iterable of course keys, find all
     the programs relevant to the user's dashboard and return them in a
