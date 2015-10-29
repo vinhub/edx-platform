@@ -267,6 +267,7 @@ class AccountSettingsOnCreationTest(TestCase):
             'goals': None,
             'is_active': False,
             'level_of_education': None,
+            'dropdown': None,
             'mailing_address': None,
             'year_of_birth': None,
             'country': None,

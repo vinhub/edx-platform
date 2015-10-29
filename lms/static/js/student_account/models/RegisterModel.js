@@ -10,6 +10,7 @@
                 username: '',
                 password: '',
                 level_of_education: '',
+                dropdown: '',
                 gender: '',
                 year_of_birth: '',
                 mailing_address: '',

@@ -20,12 +20,13 @@ The distribution in a course for gender might look like:
         'f': 'Female'
 }
 """
+from django.conf import settings
 
 from django.db.models import Count
 from student.models import CourseEnrollment, UserProfile
 
 # choices with a restricted domain, e.g. level_of_education
-_EASY_CHOICE_FEATURES = ('gender', 'level_of_education')
+_EASY_CHOICE_FEATURES = ('gender', 'level_of_education', 'dropdown')
 # choices with a larger domain e.g. year_of_birth
 _OPEN_CHOICE_FEATURES = ('year_of_birth',)
 
@@ -34,6 +35,7 @@ DISPLAY_NAMES = {
     'gender': 'Gender',
     'level_of_education': 'Level of Education',
     'year_of_birth': 'Year Of Birth',
+    'dropdown': 'Referrer',
 }
 
 
@@ -107,6 +109,8 @@ def profile_distribution(course_id, feature):
             raw_choices = UserProfile.GENDER_CHOICES
         elif feature == 'level_of_education':
             raw_choices = UserProfile.LEVEL_OF_EDUCATION_CHOICES
+        elif feature == 'dropdown':
+            raw_choices = settings.REGISTRATION_DROPDOWN_CHOICES
 
         # short name and display name (full) of the choices.
         choices = [(short, full)
@@ -117,6 +121,7 @@ def profile_distribution(course_id, feature):
             return {
                 'gender': {'user__profile__gender': value},
                 'level_of_education': {'user__profile__level_of_education': value},
+                'dropdown': {'user__profile__dropdown': value},
             }[feature]
 
         def get_count(feature, value):

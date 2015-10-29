@@ -23,6 +23,7 @@
                     username: 'Xsy',
                     password: 'xsyisawesome',
                     level_of_education: 'p',
+                    dropdown: "friend",
                     gender: 'm',
                     year_of_birth: 2014,
                     mailing_address: '141 Portland',
@@ -106,6 +107,21 @@
                             ],
                             required: false,
                             instructions: 'Select your education level.',
+                            restrictions: {}
+                        },
+                        {
+                            placeholder: '',
+                            name: 'dropdown',
+                            label: 'How did you hear of us?',
+                            defaultValue: '',
+                            type: 'select',
+                            options: [
+                                {value: "", name: "--"},
+                                {value: "search", name: "Search Engine"},
+                                {value: "friend", name: "A friend"},
+                                {value: "other", name: "Other"}
+                            ],
+                            required: false,
                             restrictions: {}
                         },
                         {
@@ -208,6 +224,7 @@
                 $('#register-username').val(USER_DATA.username);
                 $('#register-password').val(USER_DATA.password);
                 $('#register-level_of_education').val(USER_DATA.level_of_education);
+                $('#register-dropdown').val(USER_DATA.dropdown);
                 $('#register-gender').val(USER_DATA.gender);
                 $('#register-year_of_birth').val(USER_DATA.year_of_birth);
                 $('#register-mailing_address').val(USER_DATA.mailing_address);

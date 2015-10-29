@@ -1448,7 +1448,7 @@ def _do_create_account(form):
     registration.register(user)
 
     profile_fields = [
-        "name", "level_of_education", "gender", "mailing_address", "city", "country", "goals",
+        "name", "level_of_education", "dropdown", "gender", "mailing_address", "city", "country", "goals",
         "year_of_birth"
     ]
     profile = UserProfile(
@@ -1621,6 +1621,7 @@ def create_account_with_params(request, params):
                 'education': profile.level_of_education_display,
                 'address': profile.mailing_address,
                 'gender': profile.gender_display,
+                'dropdown': profile.dropdown_display,
                 'country': profile.country,
             }
         ]

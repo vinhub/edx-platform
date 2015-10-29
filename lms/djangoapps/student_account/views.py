@@ -378,6 +378,9 @@ def account_settings_context(request):
                 'options': released_languages(),
             }, 'level_of_education': {
                 'options': [(choice[0], _(choice[1])) for choice in UserProfile.LEVEL_OF_EDUCATION_CHOICES],  # pylint: disable=translation-of-non-string
+            }, 'dropdown': {
+                # pylint: disable=translation-of-non-string
+                'options': [(choice[0], _(choice[1])) for choice in settings.REGISTRATION_DROPDOWN_CHOICES]
             }, 'password': {
                 'url': reverse('password_reset'),
             }, 'year_of_birth': {

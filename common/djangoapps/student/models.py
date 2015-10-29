@@ -276,6 +276,9 @@ class UserProfile(models.Model):
     allow_certificate = models.BooleanField(default=1)
     bio = models.CharField(blank=True, null=True, max_length=3000, db_index=False)
     profile_image_uploaded_at = models.DateTimeField(null=True)
+    dropdown = models.CharField(
+        blank=True, null=True, max_length=255, db_index=True,
+    )
 
     @property
     def has_profile_image(self):
@@ -304,6 +307,12 @@ class UserProfile(models.Model):
         """ Convenience method that returns the human readable gender. """
         if self.gender:
             return self.__enumerable_to_display(self.GENDER_CHOICES, self.gender)
+
+    @property
+    def dropdown_display(self):
+        """ Convenience method that returns the human readable dropdown option. """
+        if self.dropdown:
+            return self.__enumerable_to_display(settings.REGISTRATION_DROPDOWN_CHOICES, self.dropdown)
 
     def get_meta(self):  # pylint: disable=missing-docstring
         js_str = self.meta

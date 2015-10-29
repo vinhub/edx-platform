@@ -99,6 +99,7 @@ class UserAPITestCase(APITestCase):
         legacy_profile = UserProfile.objects.get(id=user.id)
         legacy_profile.country = "US"
         legacy_profile.level_of_education = "m"
+        legacy_profile.dropdown = "friend"
         legacy_profile.year_of_birth = 2000
         legacy_profile.goals = "world peace"
         legacy_profile.mailing_address = "Park Ave"
@@ -181,13 +182,14 @@ class TestAccountAPI(UserAPITestCase):
         Verify that all account fields are returned (even those that are not shareable).
         """
         data = response.data
-        self.assertEqual(16, len(data))
+        self.assertEqual(17, len(data))
         self.assertEqual(self.user.username, data["username"])
         self.assertEqual(self.user.first_name + " " + self.user.last_name, data["name"])
         self.assertEqual("US", data["country"])
         self.assertEqual("f", data["gender"])
         self.assertEqual(2000, data["year_of_birth"])
         self.assertEqual("m", data["level_of_education"])
+        self.assertEqual("friend", data["dropdown"])
         self.assertEqual("world peace", data["goals"])
         self.assertEqual("Park Ave", data['mailing_address'])
         self.assertEqual(self.user.email, data["email"])
@@ -308,10 +310,10 @@ class TestAccountAPI(UserAPITestCase):
             with self.assertNumQueries(8):
                 response = self.send_get(self.client)
             data = response.data
-            self.assertEqual(16, len(data))
+            self.assertEqual(17, len(data))
             self.assertEqual(self.user.username, data["username"])
             self.assertEqual(self.user.first_name + " " + self.user.last_name, data["name"])
-            for empty_field in ("year_of_birth", "level_of_education", "mailing_address", "bio"):
+            for empty_field in ("year_of_birth", "level_of_education", "dropdown", "mailing_address", "bio"):
                 self.assertIsNone(data[empty_field])
             self.assertIsNone(data["country"])
             self.assertEqual("m", data["gender"])
@@ -674,12 +676,12 @@ class TestAccountAPI(UserAPITestCase):
         response = self.send_get(client)
         if has_full_access:
             data = response.data
-            self.assertEqual(16, len(data))
+            self.assertEqual(17, len(data))
             self.assertEqual(self.user.username, data["username"])
             self.assertEqual(self.user.first_name + " " + self.user.last_name, data["name"])
             self.assertEqual(self.user.email, data["email"])
             self.assertEqual(current_year - 10, data["year_of_birth"])
-            for empty_field in ("country", "level_of_education", "mailing_address", "bio"):
+            for empty_field in ("country", "level_of_education", "dropdown", "mailing_address", "bio"):
                 self.assertIsNone(data[empty_field])
             self.assertEqual("m", data["gender"])
             self.assertEqual("Learn a lot", data["goals"])

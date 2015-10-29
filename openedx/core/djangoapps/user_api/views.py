@@ -162,6 +162,7 @@ class RegistrationView(APIView):
         "gender",
         "year_of_birth",
         "level_of_education",
+        "dropdown",
         "mailing_address",
         "goals",
         "honor_code",
@@ -432,6 +433,28 @@ class RegistrationView(APIView):
                 "min_length": PASSWORD_MIN_LENGTH,
                 "max_length": PASSWORD_MAX_LENGTH,
             },
+            required=required
+        )
+
+    # pylint: disable=translation-of-non-string
+    def _add_dropdown_field(self, form_desc, required=True):
+        """Add a custom dropdown field to a form description.
+
+        Arguments:
+            form_desc: A form description
+
+        Keyword Arguments:
+            required (bool): Whether this field is required; defaults to True
+
+        """
+        dropdown_label = _(settings.REGISTRATION_DROPDOWN_LABEL)
+        options = [(name, _(label)) for name, label in settings.REGISTRATION_DROPDOWN_CHOICES]
+        form_desc.add_field(
+            "dropdown",
+            label=dropdown_label,
+            field_type="select",
+            options=options,
+            include_default_option=True,
             required=required
         )
 

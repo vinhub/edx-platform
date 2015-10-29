@@ -2170,7 +2170,18 @@ REGISTRATION_EXTRA_FIELDS = {
     'terms_of_service': 'hidden',
     'city': 'hidden',
     'country': 'hidden',
+    'dropdown': 'hidden',
 }
+
+REGISTRATION_DROPDOWN_LABEL = 'How did you hear of us?'
+
+REGISTRATION_DROPDOWN_MISSING_ERROR = 'This field is required.'
+
+REGISTRATION_DROPDOWN_CHOICES = (
+    ('search', "Search Engine"),
+    ('friend', "Referred by a Friend"),
+    ('other', 'Other'),
+)
 
 ########################## CERTIFICATE NAME ########################
 CERT_NAME_SHORT = "Certificate"
@@ -2574,6 +2585,7 @@ ACCOUNT_VISIBILITY_CONFIGURATION = {
         "goals",
         "year_of_birth",
         "level_of_education",
+        "dropdown",
         "mailing_address",
         "requires_parental_consent",
         "account_privacy",

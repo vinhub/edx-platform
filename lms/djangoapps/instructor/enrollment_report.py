@@ -1,6 +1,7 @@
 """
 Defines abstract class for the Enrollment Reports.
 """
+from django.conf import settings
 
 from django.contrib.auth.models import User
 from student.models import UserProfile
@@ -44,6 +45,15 @@ class BaseAbstractEnrollmentReportProvider(AbstractEnrollmentReportProvider):
 
     # don't allow instantiation of this class, it must be subclassed
     """
+    def get_enumerable_choice(self, enumerable, choice, label, data):
+        """
+        Get the human-readable choice from a selected option.
+        """
+        for option in enumerable:
+            if choice == option[0]:
+                data[label] = option[1]
+                break
+
     def get_user_profile(self, user_id):
         """
         Returns the UserProfile information.
@@ -69,6 +79,7 @@ class BaseAbstractEnrollmentReportProvider(AbstractEnrollmentReportProvider):
 
         user_data['Gender'] = None
         gender = user_info.profile.gender
+        self.get_enumerable_choice(UserProfile.GENDER_CHOICES, gender, 'Gender', user_data)
         for _gender in UserProfile.GENDER_CHOICES:
             if gender == _gender[0]:
                 user_data['Gender'] = _gender[1]
@@ -76,9 +87,17 @@ class BaseAbstractEnrollmentReportProvider(AbstractEnrollmentReportProvider):
 
         user_data['Level of Education'] = None
         level_of_education = user_info.profile.level_of_education
-        for _loe in UserProfile.LEVEL_OF_EDUCATION_CHOICES:
-            if level_of_education == _loe[0]:
-                user_data['Level of Education'] = _loe[1]
+        self.get_enumerable_choice(
+            UserProfile.LEVEL_OF_EDUCATION_CHOICES, level_of_education, 'Level of Education', user_data
+        )
+
+        user_data['Dropdown'] = None
+        dropdown = user_info.profile.dropdown
+        self.get_enumerable_choice(
+            settings.REGISTRATION_DROPDOWN_CHOICES, dropdown,
+            settings.REGISTRATION_DROPDOWN_LABEL,
+            user_data,
+        )
 
         user_data['Mailing Address'] = user_info.profile.mailing_address
         user_data['Goals'] = user_info.profile.goals

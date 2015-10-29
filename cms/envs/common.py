@@ -1099,3 +1099,26 @@ PROCTORING_BACKEND_PROVIDER = {
     'options': {},
 }
 PROCTORING_SETTINGS = {}
+
+REGISTRATION_EXTRA_FIELDS = {
+    'level_of_education': 'optional',
+    'gender': 'optional',
+    'year_of_birth': 'optional',
+    'mailing_address': 'optional',
+    'goals': 'optional',
+    'honor_code': 'required',
+    'terms_of_service': 'hidden',
+    'city': 'hidden',
+    'country': 'hidden',
+    'dropdown': 'hidden',
+}
+
+REGISTRATION_DROPDOWN_LABEL = 'How did you hear of us?'
+
+REGISTRATION_DROPDOWN_MISSING_ERROR = 'This field is required.'
+
+REGISTRATION_DROPDOWN_CHOICES = (
+    ('search', "Search Engine"),
+    ('friend', "Referred by a Friend"),
+    ('other', 'Other'),
+)

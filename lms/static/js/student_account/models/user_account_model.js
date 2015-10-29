@@ -17,6 +17,7 @@
                 gender: null,
                 goals: "",
                 level_of_education: null,
+                dropdown: null,
                 mailing_address: "",
                 year_of_birth: null,
                 bio: null,

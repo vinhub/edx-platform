@@ -41,6 +41,13 @@ class UserProfilePropertiesTest(TestCase):
         self.profile.gender = gender
         self.profile.save()
 
+    def _set_dropdown(self, dropdown):
+        """
+        Helper method that sets the custom dropdown for the specified user.
+        """
+        self.profile.dropdown = dropdown
+        self.profile.save()
+
     @ddt.data(0, 1, 13, 20, 100)
     def test_age(self, age):
         """Verify the age calculated correctly."""
