@@ -2,26 +2,17 @@
 Tests for student enrollment.
 """
 import ddt
-from datetime import datetime, timedelta
-import httpretty
-from mock import patch
 import unittest
+from mock import patch
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.test.utils import override_settings
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
 from util.testing import UrlResetMixin
 from embargo.test_utils import restrict_course
 from student.tests.factories import UserFactory, CourseModeFactory
-from student.models import CourseEnrollment, CourseEnrollmentAttribute
-from course_modes.models import CourseMode
-from openedx.core.lib.commerce import ECOMMERCE_DATE_FORMAT
-
-TEST_API_URL = 'http://www-internal.example.com/api'
-TEST_API_SIGNING_KEY = 'edx'
-JSON = 'application/json'
+from student.models import CourseEnrollment
 
 
 @ddt.ddt
@@ -227,124 +218,3 @@ class EnrollmentTest(UrlResetMixin, ModuleStoreTestCase):
             params['email_opt_in'] = email_opt_in
 
         return self.client.post(reverse('change_enrollment'), params)
-
-    def _create_enrollment(self):
-        """ Generate a default course mode and enrollment. """
-        CourseMode.objects.create(
-            course_id=self.course.id,
-            mode_slug='verified',
-            mode_display_name='Verified',
-        )
-
-        return CourseEnrollment(
-            mode=CourseMode.VERIFIED,
-            course_id=self.course.id,
-            user=self.user,
-        )
-
-    def test_refundable_can_refund(self):
-        """ Assert that enrollment is refundable if can_refund is set."""
-        enrollment = self._create_enrollment()
-        enrollment.can_refund = True
-
-        self.assertTrue(enrollment.refundable())
-
-    def test_refundable_generated_cert(self):
-        """ Assert that enrollment is not refundable if cert has been generated."""
-        with patch('student.models.GeneratedCertificate') as generate_cert:
-            instance = generate_cert.return_value
-            instance.certificate_for_student.return_value = True
-            enrollment = self._create_enrollment()
-
-            self.assertFalse(enrollment.refundable())
-
-    def test_refundable_after_refund_window(self):
-        """ Assert that enrollment is not refundable if it is after the refund_window_end_date."""
-        with patch('student.models.CourseEnrollment._refund_window_end_date') as window:
-            window.return_value = datetime.now() - timedelta(days=1)
-            enrollment = self._create_enrollment()
-
-            self.assertFalse(enrollment.refundable())
-
-    def test_refundable_before_refund_window(self):
-        """ Assert that enrollment is refundable if it is before the refund_window_end_date."""
-        with patch('student.models.CourseEnrollment._refund_window_end_date') as window:
-            window.return_value = datetime.now() + timedelta(days=1)
-            enrollment = self._create_enrollment()
-
-            self.assertTrue(enrollment.refundable())
-
-    def test_refundable_no_verified(self):
-        """ Assert that enrollment is not refundable if there is no verified course mode for the course."""
-        CourseMode(
-            course_id=self.course.id,
-            mode_slug='honor',
-            mode_display_name='Honor',
-        )
-
-        enrollment = CourseEnrollment(
-            mode=CourseMode.HONOR,
-            course_id=self.course.id,
-            user=self.user,
-        )
-
-        self.assertFalse(enrollment.refundable())
-
-    @ddt.data(
-        (timedelta(days=1), timedelta(days=2), timedelta(days=2), 14),
-        (timedelta(days=2), timedelta(days=1), timedelta(days=2), 14),
-        (timedelta(days=1), timedelta(days=2), timedelta(days=2), 1),
-        (timedelta(days=2), timedelta(days=1), timedelta(days=2), 1),
-    )
-    @ddt.unpack
-    @httpretty.activate
-    @override_settings(ECOMMERCE_API_SIGNING_KEY=TEST_API_SIGNING_KEY, ECOMMERCE_API_URL=TEST_API_URL)
-    def test_refund_window_end_date(self, order_date_delta, course_start_delta, expected_date_delta, days):
-        """ Assert that the later refund date is and config window timedelta are used to calculate window end date."""
-        now = datetime.now().replace(microsecond=0)
-        order_date = now + order_date_delta
-        course_start = now + course_start_delta
-        expected_date = now + expected_date_delta
-        window_days = timedelta(days=days)
-
-        order_number = 'OSCR-1000'
-
-        expected_content = '{{"date_placed": "{date}"}}'.format(date=order_date.strftime(ECOMMERCE_DATE_FORMAT))
-        httpretty.register_uri(
-            httpretty.GET,
-            '{url}/orders/{order}/'.format(url=TEST_API_URL, order=order_number),
-            status=200, body=expected_content,
-            adding_headers={'Content-Type': JSON}
-        )
-
-        enrollment = CourseEnrollment.objects.create(
-            mode=CourseMode.VERIFIED,
-            course_id=self.course.id,
-            user=self.user,
-        )
-        enrollment.course_overview.start = course_start
-
-        enrollment.attributes.add(CourseEnrollmentAttribute(  # pylint: disable=no-member
-            enrollment=enrollment,
-            namespace='order',
-            name='order_number',
-            value=order_number
-        ))
-
-        with patch('student.models.EnrollmentRefundConfiguration.current') as config:
-            instance = config.return_value
-            instance.refund_window = window_days
-            self.assertEqual(
-                enrollment._refund_window_end_date(),  # pylint: disable=protected-access
-                expected_date + window_days
-            )
-
-    def test_refund_window_end_date_no_attributes(self):
-        """ Assert that the None is returned when no order number attribute is found."""
-        enrollment = CourseEnrollment(
-            mode=CourseMode.VERIFIED,
-            course_id=self.course.id,
-            user=self.user,
-        )
-
-        self.assertIsNone(enrollment._refund_window_end_date())  # pylint: disable=protected-access

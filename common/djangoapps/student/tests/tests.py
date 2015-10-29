@@ -3,21 +3,24 @@
 Miscellaneous tests for the student app.
 """
 from datetime import datetime, timedelta
+import ddt
+import httpretty
 import logging
 import pytz
 import unittest
-import ddt
 
 from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
+from django.test.utils import override_settings
 from mock import Mock, patch
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
 
 from student.models import (
-    anonymous_id_for_user, user_by_anonymous_id, CourseEnrollment, unique_id_for_user, LinkedInAddToProfileConfiguration
+    anonymous_id_for_user, user_by_anonymous_id, CourseEnrollment,
+    CourseEnrollmentAttribute, unique_id_for_user, LinkedInAddToProfileConfiguration
 )
 from student.views import (
     process_survey_link,
@@ -37,12 +40,15 @@ from certificates.models import CertificateStatuses  # pylint: disable=import-er
 from certificates.tests.factories import GeneratedCertificateFactory  # pylint: disable=import-error
 from verify_student.models import SoftwareSecurePhotoVerification
 import shoppingcart  # pylint: disable=import-error
+from openedx.core.lib.commerce import ECOMMERCE_DATE_FORMAT
 
 # Explicitly import the cache from ConfigurationModel so we can reset it after each test
 from config_models.models import cache
 
 log = logging.getLogger(__name__)
-
+TEST_API_URL = 'http://www-internal.example.com/api'
+TEST_API_SIGNING_KEY = 'edx'
+JSON = 'application/json'
 
 @ddt.ddt
 class CourseEndingTest(TestCase):
@@ -303,6 +309,9 @@ class DashboardTest(ModuleStoreTestCase):
         verified_mode.save()
         self.assertFalse(enrollment.refundable())
 
+        enrollment.can_refund = True
+        self.assertTrue(enrollment.refundable())
+
     @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     @patch('courseware.views.log.warning')
     @patch.dict('django.conf.settings.FEATURES', {'ENABLE_PAID_COURSE_REGISTRATION': True})
@@ -402,6 +411,90 @@ class DashboardTest(ModuleStoreTestCase):
         )
 
         self.assertFalse(enrollment.refundable())
+
+    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
+    def test_refundable_when_refund_window(self):
+        CourseModeFactory.create(
+            course_id=self.course.id,
+            mode_slug='verified',
+            mode_display_name='Verified',
+            expiration_datetime=datetime.now(pytz.UTC) + timedelta(days=1)
+        )
+
+        enrollment = CourseEnrollment.enroll(self.user, self.course.id, mode='verified')
+
+        self.assertTrue(enrollment.refundable())
+
+        with patch('student.models.CourseEnrollment._refund_window_end_date') as window:
+            window.return_value = datetime.now() - timedelta(days=1)
+            self.assertFalse(enrollment.refundable())
+
+            window.return_value = datetime.now() + timedelta(days=1)
+            self.assertTrue(enrollment.refundable())
+
+    @ddt.data(
+        (timedelta(days=1), timedelta(days=2), timedelta(days=2), 14),
+        (timedelta(days=2), timedelta(days=1), timedelta(days=2), 14),
+        (timedelta(days=1), timedelta(days=2), timedelta(days=2), 1),
+        (timedelta(days=2), timedelta(days=1), timedelta(days=2), 1),
+    )
+    @ddt.unpack
+    @httpretty.activate
+    @override_settings(ECOMMERCE_API_SIGNING_KEY=TEST_API_SIGNING_KEY, ECOMMERCE_API_URL=TEST_API_URL)
+    def test_refund_window_end_date(self, order_date_delta, course_start_delta, expected_date_delta, days):
+        """ Assert that the later refund date is and config window timedelta are used to calculate window end date."""
+        now = datetime.now().replace(microsecond=0)
+        order_date = now + order_date_delta
+        course_start = now + course_start_delta
+        expected_date = now + expected_date_delta
+        window_days = timedelta(days=days)
+        order_number = 'OSCR-1000'
+        expected_content = '{{"date_placed": "{date}"}}'.format(date=order_date.strftime(ECOMMERCE_DATE_FORMAT))
+
+        httpretty.register_uri(
+            httpretty.GET,
+            '{url}/orders/{order}/'.format(url=TEST_API_URL, order=order_number),
+            status=200, body=expected_content,
+            adding_headers={'Content-Type': JSON}
+        )
+
+        CourseModeFactory.create(
+            course_id=self.course.id,
+            mode_slug='verified',
+            mode_display_name='Verified',
+            expiration_datetime=datetime.now(pytz.UTC) + timedelta(days=1)
+        )
+
+        enrollment = CourseEnrollment.enroll(self.user, self.course.id, mode='verified')
+        enrollment.course_overview.start = course_start
+        enrollment.attributes.add(CourseEnrollmentAttribute(  # pylint: disable=no-member
+            enrollment=enrollment,
+            namespace='order',
+            name='order_number',
+            value=order_number
+        ))
+
+        with patch('student.models.EnrollmentRefundConfiguration.current') as config:
+            instance = config.return_value
+            instance.refund_window = window_days
+            self.assertEqual(
+                enrollment._refund_window_end_date(),  # pylint: disable=protected-access
+                expected_date + window_days
+            )
+
+    def test_refund_window_end_date_no_attributes(self):
+        """ Assert that the None is returned when no order number attribute is found."""
+        CourseModeFactory.create(
+            course_id=self.course.id,
+            mode_slug='verified',
+            mode_display_name='Verified',
+            expiration_datetime=datetime.now(pytz.UTC) + timedelta(days=1)
+        )
+
+        enrollment = CourseEnrollment.enroll(self.user, self.course.id, mode='verified')
+
+        self.assertIsNone(enrollment._refund_window_end_date())  # pylint: disable=protected-access
+
 
     @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def test_linked_in_add_to_profile_btn_not_appearing_without_config(self):
