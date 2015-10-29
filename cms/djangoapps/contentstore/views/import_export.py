@@ -118,12 +118,13 @@ def _import_handler(request, courselike_key, root_name, successful_url, context_
 
                 # If the course has an entrance exam then remove it and its corresponding milestone.
                 # current course state before import.
-                if courselike_module.entrance_exam_enabled:
-                    remove_entrance_exam_milestone_reference(request, courselike_key)
-                    log.info(
-                        "entrance exam milestone content reference for course %s has been removed",
-                        courselike_module.id
-                    )
+                if root_name == COURSE_ROOT:
+                    if courselike_module.entrance_exam_enabled:
+                        remove_entrance_exam_milestone_reference(request, courselike_key)
+                        log.info(
+                            "entrance exam milestone content reference for course %s has been removed",
+                            courselike_module.id
+                        )
 
                 if not filename.endswith('.tar.gz'):
                     _save_request_status(request, courselike_string, -1)
@@ -316,7 +317,7 @@ def _import_handler(request, courselike_key, root_name, successful_url, context_
                     _save_request_status(request, courselike_string, -abs(session_status[courselike_string]))
 
                 # status == 4 represents that course has been imported successfully.
-                if session_status[courselike_string] == 4:
+                if session_status[courselike_string] == 4 and root_name == COURSE_ROOT:
                     # Reload the course so we have the latest state
                     course = modulestore().get_course(courselike_key)
                     if course.entrance_exam_enabled:
