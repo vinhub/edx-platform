@@ -2,7 +2,7 @@
 from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import DataMigration
-from django.db import models
+from django.db import models, IntegrityError, transaction
 
 
 class Migration(DataMigration):
@@ -26,13 +26,33 @@ class Migration(DataMigration):
                 unioned_set = set(current_course_groups).union(set(current_user_groups))
 
                 # Per product guidance, fix problem users by arbitrarily choosing a single membership to retain
-                cohort_itr = unioned_set.pop()
+                arbitrary_cohort_to_keep = unioned_set.pop()
+
+                try:
+                    membership = orm.CohortMembership(
+                        course_user_group=arbitrary_cohort_to_keep,
+                        user=user,
+                        course_id=arbitrary_cohort_to_keep.course_id
+                    )
+                    membership.save()
+                except IntegrityError:
+                    # It's possible a user already has a conflicting entry in the db. Treat that as correct.
+                    unioned_set.add(arbitrary_cohort_to_keep)
+                    try:
+                        valid_membership = orm.CohortMembership.objects.get(
+                            course_id = cohort_group.course_id,
+                            user__id=user.id
+                        )
+                        actual_cohort_to_keep = orm.CourseUserGroup.objects.get(
+                            id=valid_membership.course_user_group.id
+                        )
+                        unioned_set.remove(actual_cohort_to_keep)
+                    except KeyError:
+                        actual_cohort_to_keep.users.add(user)
 
                 for cohort_itr in unioned_set:
                     cohort_itr.users.remove(user)
                     user.course_groups.remove(cohort_itr)
-                membership = orm.CohortMembership(course_user_group=cohort_group, user=user, course_id=cohort_group.course_id)
-                membership.save()
 
     def backwards(self, orm):
         # A backwards migration just means dropping the table, which 0005 handles in its backwards() method
