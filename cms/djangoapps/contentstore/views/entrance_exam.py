@@ -294,4 +294,3 @@ def remove_entrance_exam_milestone_reference(request, course_key):
         if course_child.is_entrance_exam:
             delete_item(request, course_child.scope_ids.usage_id)
             milestones_helpers.remove_content_references(unicode(course_child.scope_ids.usage_id))
-
