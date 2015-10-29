@@ -35,6 +35,7 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
     def add_transformers(self):
         """
         Add each registered transformer to the block structure.
+        Mimic collection by setting test transformer block data.
         """
         for transformer in self.transformers:
             self.block_structure._add_transformer(transformer)
@@ -44,21 +45,6 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
 
     def test_create_from_modulestore(self):
         self.assert_block_structure(self.block_structure, self.children_map)
-
-    def test_uncollected_transformers(self):
-        cache = MockCache()
-
-        BlockStructureFactory.serialize_to_cache(self.block_structure, cache)
-        with patch('openedx.core.lib.block_cache.block_structure_factory.logger.info') as mock_logger:
-            # cached data does not have collected information for all registered transformers
-            self.assertIsNone(
-                BlockStructureFactory.create_from_cache(
-                    root_block_usage_key=0,
-                    cache=cache,
-                    transformers=self.transformers,
-                )
-            )
-            self.assertTrue(mock_logger.called)
 
     def test_not_in_cache(self):
         cache = MockCache()
@@ -71,8 +57,27 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
             )
         )
 
+    def test_uncollected_transformers(self):
+        cache = MockCache()
+
+        # serialize the structure to cache, but without collecting any transformer data
+        BlockStructureFactory.serialize_to_cache(self.block_structure, cache)
+
+        with patch('openedx.core.lib.block_cache.block_structure_factory.logger.info') as mock_logger:
+            # cached data does not have collected information for all registered transformers
+            self.assertIsNone(
+                BlockStructureFactory.create_from_cache(
+                    root_block_usage_key=0,
+                    cache=cache,
+                    transformers=self.transformers,
+                )
+            )
+            self.assertTrue(mock_logger.called)
+
     def test_cache(self):
         cache = MockCache()
+
+        # collect transformer data
         self.add_transformers()
 
         # serialize to cache
@@ -91,9 +96,14 @@ class TestBlockStructureFactory(TestCase, ChildrenMapTestMixin):
 
     def test_remove_from_cache(self):
         cache = MockCache()
+
+        # collect transformer data
         self.add_transformers()
 
+        # serialize to cache
         BlockStructureFactory.serialize_to_cache(self.block_structure, cache)
+
+        # remove from cache
         BlockStructureFactory.remove_from_cache(root_block_usage_key=0, cache=cache)
         self.assertIsNone(
             BlockStructureFactory.create_from_cache(

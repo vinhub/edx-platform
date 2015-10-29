@@ -18,11 +18,11 @@ class TransformerRegistry(PluginManager):
     @classmethod
     def get_registered_transformers(cls):
         """
-        Returns a list of all registered transformers.
+        Returns a set of all registered transformers.
 
         Returns:
-            [BlockStructureTransformer] - All transformers that are
-            registered with the platform's PluginManager.
+            {BlockStructureTransformer} - All transformers that are
+                registered with the platform's PluginManager.
         """
         return set(cls.get_available_plugins().itervalues())
 

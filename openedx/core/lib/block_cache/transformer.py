@@ -67,7 +67,7 @@ class BlockStructureTransformer(object):
             post_order_traversal
 
         Arguments:
-            block_structure (BlockStructureXBlockData) - A mutable
+            block_structure (BlockStructureModulestoreData) - A mutable
                 block structure that is to be modified with collected
                 data to be cached for the transformer.
         """

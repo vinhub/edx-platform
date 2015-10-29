@@ -2,7 +2,7 @@
 Module with family of classes for block structures.
     BlockStructure - responsible for block existence and relations.
     BlockStructureBlockData - responsible for block & transformer data.
-    BlockStructureXBlockData - responsible for xBlock data.
+    BlockStructureModulestoreData - responsible for xBlock data.
 
 The following internal data structures are implemented:
     _BlockRelations - Data structure for a single block's relations.
@@ -465,7 +465,14 @@ class BlockStructureBlockData(BlockStructure):
                 self.remove_block(block_key, keep_descendants)
                 return False
             return True
-        list(self.topological_traversal(filter_func=filter_func, **kwargs))
+
+        # Note: For optimization, we remove blocks using the filter
+        # function, since the graph traversal method can skip over
+        # descendants that are unyielded.  However, note that the
+        # optimization is not currently present because of DAGs,
+        # but it will be as soon as we remove support for DAGs.
+        for _ in self.topological_traversal(filter_func=filter_func, **kwargs):
+            pass
 
     def _get_transformer_data_version(self, transformer):
         """
@@ -488,7 +495,7 @@ class BlockStructureBlockData(BlockStructure):
         self.set_transformer_data(transformer, TRANSFORMER_VERSION_KEY, transformer.VERSION)
 
 
-class BlockStructureXBlockData(BlockStructureBlockData):
+class BlockStructureModulestoreData(BlockStructureBlockData):
     """
     Subclass of BlockStructureBlockData that is responsible for managing
     xBlocks and corresponding functionality that should only be called
@@ -499,7 +506,7 @@ class BlockStructureXBlockData(BlockStructureBlockData):
     interface and implementation of an xBlock.
     """
     def __init__(self, root_block_usage_key):
-        super(BlockStructureXBlockData, self).__init__(root_block_usage_key)
+        super(BlockStructureModulestoreData, self).__init__(root_block_usage_key)
 
         # Map of a block's usage key to its instantiated xBlock.
         # dict {UsageKey: XBlock}

@@ -6,7 +6,7 @@ from logging import getLogger
 
 from openedx.core.lib.cache_utils import zpickle, zunpickle
 
-from .block_structure import BlockStructureBlockData, BlockStructureXBlockData
+from .block_structure import BlockStructureBlockData, BlockStructureModulestoreData
 
 
 logger = getLogger(__name__)  # pylint: disable=C0103
@@ -31,12 +31,12 @@ class BlockStructureFactory(object):
                 structure starting at root_block_usage_key.
 
         Returns:
-            BlockStructureXBlockData - The created block structure
+            BlockStructureModulestoreData - The created block structure
                 with instantiated xBlocks from the given modulestore
                 starting at root_block_usage_key.
         """
         # Create block structure.
-        block_structure = BlockStructureXBlockData(root_block_usage_key)
+        block_structure = BlockStructureModulestoreData(root_block_usage_key)
 
         # Create internal set of blocks visited to use when recursing.
         blocks_visited = set()

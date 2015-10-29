@@ -10,7 +10,7 @@ from unittest import TestCase
 
 from openedx.core.lib.graph_traversals import traverse_post_order
 
-from ..block_structure import BlockStructure, BlockStructureXBlockData, BlockStructureBlockData
+from ..block_structure import BlockStructure, BlockStructureModulestoreData, BlockStructureBlockData
 from ..exceptions import TransformerException
 from ..transformer import BlockStructureTransformer
 from .test_utils import MockXBlock, MockTransformer, ChildrenMapTestMixin
@@ -47,7 +47,7 @@ class TestBlockStructure(TestCase, ChildrenMapTestMixin):
 @ddt.ddt
 class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
     """
-    Tests for BlockStructureBlockData and BlockStructureXBlockData
+    Tests for BlockStructureBlockData and BlockStructureModulestoreData
     """
     def test_non_versioned_transformer(self):
         class TestNonVersionedTransformer(BlockStructureTransformer):
@@ -57,7 +57,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
             def transform(self, user_info, block_structure):
                 pass
 
-        block_structure = BlockStructureXBlockData(root_block_usage_key=0)
+        block_structure = BlockStructureModulestoreData(root_block_usage_key=0)
 
         with self.assertRaisesRegexp(TransformerException, "VERSION attribute is not set"):
             block_structure._add_transformer(TestNonVersionedTransformer())
@@ -87,7 +87,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
         ]
 
         # create block structure
-        block_structure = BlockStructureXBlockData(root_block_usage_key=0)
+        block_structure = BlockStructureModulestoreData(root_block_usage_key=0)
 
         # set transformer data
         for t_info in transformers_info:
@@ -127,7 +127,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
         ]
 
         # add each block
-        block_structure = BlockStructureXBlockData(root_block_usage_key=0)
+        block_structure = BlockStructureModulestoreData(root_block_usage_key=0)
         for block in blocks:
             block_structure._add_xblock(block.location, block)
 
@@ -158,7 +158,7 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
             [
                 ChildrenMapTestMixin.SIMPLE_CHILDREN_MAP,
                 ChildrenMapTestMixin.LINEAR_CHILDREN_MAP,
-                # ChildrenMapTestMixin.DAG_CHILDREN_MAP,
+                ChildrenMapTestMixin.DAG_CHILDREN_MAP,
             ],
         )
     )
@@ -200,8 +200,12 @@ class TestBlockStructureData(TestCase, ChildrenMapTestMixin):
         pruned_children_map = deepcopy(removed_children_map)
 
         if not keep_descendants:
+            pruned_parents_map = self.get_parents_map(pruned_children_map)
             # update all descendants
             for child in children_map[block_to_remove]:
+                # if the child has another parent, continue
+                if pruned_parents_map[child]:
+                    continue
                 for block in traverse_post_order(child, get_children=lambda block: pruned_children_map[block]):
                     # add descendant to missing blocks and empty its
                     # children
