@@ -10,6 +10,7 @@ from collections import defaultdict
 from pytz import UTC
 from requests import HTTPError
 from ipware.ip import get_ip
+from urlparse import urljoin
 
 from django.conf import settings
 from django.contrib.auth import logout, authenticate, login
@@ -579,7 +580,7 @@ def dashboard(request):
     # program-related information on the dashboard view.
     course_programs = {}
     if is_student_dashboard_programs_enabled():
-        course_programs = _get_xseries_programs(user, show_courseware_links_for)
+        course_programs = _get_course_programs(user, show_courseware_links_for)
 
     # Construct a dictionary of course mode information
     # used to render the course list.  We re-use the course modes dict
@@ -701,11 +702,11 @@ def dashboard(request):
         'order_history_list': order_history_list,
         'courses_requirements_not_met': courses_requirements_not_met,
         'nav_hidden': True,
-        'course_programs': course_programs,
-        'program_marketing_url': settings.MKTG_URLS.get('ROOT')
+        'course_programs': course_programs
     }
 
     return render_to_response('dashboard.html', context)
+
 
 def _create_recent_enrollment_message(course_enrollments, course_modes):  # pylint: disable=invalid-name
     """
@@ -2273,7 +2274,7 @@ def change_email_settings(request):
     return JsonResponse({"success": True})
 
 
-def _get_xseries_programs(user, user_enrolled_courses): # pylint: disable=invalid-name
+def _get_course_programs(user, user_enrolled_courses): # pylint: disable=invalid-name
     """ Return a list of course key containing data required
     for dashboard.
 
@@ -2286,17 +2287,19 @@ def _get_xseries_programs(user, user_enrolled_courses): # pylint: disable=invali
         course_keys (list): List of course keys in which user is enrolled
 
     Returns:
-        Dictionary response containing programs or None
+        Dictionary response containing programs or {}
     """
-    expected_output = get_course_programs_for_dashboard(user, user_enrolled_courses)
+    course_programs = get_course_programs_for_dashboard(user, user_enrolled_courses)
     programs_data = {}
-    for course_key, course_data in expected_output.items():
-        if course_data.get('status') == 'active':
-            for course_codes_data in course_data.get('course_codes', []):
-                programs_data[course_key] = {
-                    'run_modes_count': len(course_codes_data.get('run_modes', [])),
-                    'marketing_slug': course_codes_data.get('marketing_slug', ''),
-                    'display_name': course_codes_data.get('display_name', ''),
-                    'category': course_data.get('category', 'xseries'),
-                }
+    for course_key, program in course_programs.items():
+        if program.get('status') == 'active' and program.get('category') == 'xseries':
+            programs_data[course_key] = {
+                'course_count': len(program.get('course_codes', [])),
+                'display_name': program.get('name', ''),
+                'category': program.get('category'),
+                'program_marketing_url': urljoin(
+                    settings.MKTG_URLS.get('ROOT'), program.get('category') + '/{}').format(
+                    program.get('marketing_slug', '')
+                )
+            }
     return programs_data

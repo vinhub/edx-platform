@@ -15,6 +15,7 @@ from django.test import TestCase
 from django.test.client import Client
 from mock import Mock, patch
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
+from urlparse import urljoin
 
 from student.models import (
     anonymous_id_for_user, user_by_anonymous_id, CourseEnrollment, unique_id_for_user, LinkedInAddToProfileConfiguration
@@ -23,7 +24,7 @@ from student.views import (
     process_survey_link,
     _cert_info,
     complete_course_mode_info,
-    _get_xseries_programs
+    _get_course_programs
 )
 from student.tests.factories import UserFactory, CourseModeFactory
 from util.testing import EventTestMixin
@@ -976,18 +977,14 @@ class DashboardTestXSeriesPrograms(ModuleStoreTestCase):
         for course in data:
             programs[unicode(course[0])] = {
                 'category': 'xseries',
+                'organization': {'display_name': 'Test Organization 1', 'key': 'edX'},
+                'marketing_slug': 'fake-marketing-slug-xseries-1',
                 'status': course[1],
                 'course_codes': [
                     {
-                        'organization': {'display_name': 'Test Organization 1', 'key': 'edX'},
-                        'marketing_slug': 'manual-test-1',
-                        'display_name': 'Manual Test',
+                        'display_name': 'Demo XSeries Program 1',
                         'key': 'TEST_A',
-                        'run_modes': [
-                            {'sku': '', 'mode_slug': 'ABC_1', 'course_key': 'edX/DemoX_1/Run_1'},
-                            {'sku': '', 'mode_slug': 'ABC_2', 'course_key': 'edX/DemoX_2/Run_2'},
-                            {'sku': '', 'mode_slug': 'ABC_3', 'course_key': 'edX/DemoX_2/Run_3'},
-                        ]
+                        'run_modes': [{'sku': '', 'mode_slug': 'ABC_1', 'course_key': 'edX/DemoX_1/Run_1'}]
                     }
                 ],
                 'subtitle': 'Dummy program 1 for testing',
@@ -1003,27 +1000,23 @@ class DashboardTestXSeriesPrograms(ModuleStoreTestCase):
         ('inactive', [{'sku': ''}, {'sku': ''}, {'sku': ''}, {'sku': ''}], 4, 'slug3'),
     )
     @ddt.unpack
-    def test_get_xseries_programs_method(self, status, run_modes, run_modes_count, slug):
-        with patch('student.views.dummy_method_for_test_cases') as mock_data:
+    def test_get_xseries_programs_method(self, status, course_codes, course_codes_count, slug):
+        with patch('student.views._get_course_programs') as mock_data:
             mock_data.return_value = {
                 unicode('course-v1:ManTestX+ManTest2+2014'): {
                     'category': 'xseries',
+                    'organization': {'display_name': 'Test Organization 1', 'key': 'edX'},
+                    'marketing_slug': slug,
                     'status': status,
-                    'course_codes': [
-                        {
-                            'organization': {'display_name': 'Test Organization 1', 'key': 'edX'},
-                            'marketing_slug': slug,
-                            'display_name': 'Manual Test',
-                            'key': 'TEST_A',
-                            'run_modes': run_modes
-                        }
-                    ],
+                    'course_codes': course_codes,
                     'subtitle': 'Dummy program 1 for testing',
                     'name': 'First Program'
                 }
             }
-            parse_data = _get_xseries_programs(
-                self.user, [unicode('course-v1:ManTestX+ManTest2+2014'), 'edx/demox/DemoCourse']
+            parse_data = _get_course_programs(
+                self.user, [
+                    u'course-v1:ManTestX+ManTest2+2014', 'edx/demox/DemoCourse'
+                ]
             )
 
             if status == 'inactive':
@@ -1032,10 +1025,10 @@ class DashboardTestXSeriesPrograms(ModuleStoreTestCase):
                 self.assertDictEqual(
                     {
                         'course-v1:ManTestX+ManTest2+2014': {
-                            'run_modes_count': run_modes_count,
-                            'marketing_slug': slug,
-                            'display_name': 'Manual Test',
-                            'category': 'xseries'
+                            'course_count': course_codes_count,
+                            'display_name': 'First Program',
+                            'program_marketing_url': urljoin(
+                             settings.MKTG_URLS.get('ROOT'), 'xseries' + '/{}').format(slug)
                         }
                     },
                     parse_data
@@ -1065,7 +1058,7 @@ class DashboardTestXSeriesPrograms(ModuleStoreTestCase):
         self.client.login(username="jack", password="test")
         self._create_program_config(enabled=True, enable_student_dashboard=True)
 
-        with patch('student.views.dummy_method_for_test_cases') as mock_data:
+        with patch('student.views._get_course_programs') as mock_data:
             mock_data.return_value = self._create_program_data(
                 [(self.course.id, 'active'), (self.course_two.id, 'inactive')]
             )
@@ -1098,7 +1091,7 @@ class DashboardTestXSeriesPrograms(ModuleStoreTestCase):
         self.client.login(username="jack", password="test")
         self._create_program_config(enabled=True, enable_student_dashboard=True)
 
-        with patch('student.views.dummy_method_for_test_cases') as mock_data:
+        with patch('student.views._get_course_programs') as mock_data:
             mock_data.return_value = self._create_program_data(
                 [(self.course.id, status1),
                  (self.course_two.id, status2),
@@ -1111,7 +1104,7 @@ class DashboardTestXSeriesPrograms(ModuleStoreTestCase):
             self._assert_responses(response, xseries_count)
 
     def _assert_responses(self, response, count):
-        """Dry method to compare different strings."""
+        """Dry method to compare different messages , classes."""
         self.assertContains(response, 'label-xseries-association', count)
         self.assertContains(response, 'btn xseries-', count)
         self.assertContains(response, 'XSeries Program Course', count)
