@@ -23,4 +23,4 @@
 -e git+https://github.com/pmitros/ProfileXBlock.git@4aeaa24aa2bc7d9cb2d2bb60d6f05def3b856be0#egg=profile-xblock
 
 # Peer instruction xblock - prototype (from UBC; not for use on edx.org yet)
-ubcpi-xblock==0.4.4
+#ubcpi-xblock==0.4.4
