@@ -910,6 +910,14 @@ class CourseFields(object):
         scope=Scope.settings,
     )
 
+    yammer_group_id = String(
+        display_name=_("Yammer Group ID"),
+        help=_("Enter the ID of the Yammer group created for this course. "
+        "If you do not already have a Yammer group for this course, you can create it easily by going to "
+        "<a href=\"http://yammer.com\" target=\"_blank\">Yammer</a>."),
+        scope=Scope.settings,
+        default=""
+    )
 
 class CourseModule(CourseFields, SequenceModule):  # pylint: disable=abstract-method
     """
