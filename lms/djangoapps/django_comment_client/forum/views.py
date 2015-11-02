@@ -555,21 +555,25 @@ def get_user_graph_info(request, user_id):
         django_user_social = User.objects.get(id=user_id).social_auth.get(provider='azuread-oauth2') # TODO: remove provider name hardcoding
         loggedin_user_social = request.user.social_auth.get(provider='azuread-oauth2') # TODO: remove provider name hardcoding
         access_token = loggedin_user_social.extra_data['access_token']
+        log.warning("extra_data: " + json.dumps(loggedin_user_social.extra_data))
 
         # use sharepoint site specified in settings of the logged in user
-        sharepoint_site = loggedin_user_social.extra_data['sharepoint_site']
+        sharepoint_site = loggedin_user_social.extra_data['resource']
         
         # get actor id of the user whose profile we are viewing
         profile_username = django_user_social.uid.split("@")[0]
+        log.warning("user name: " + profile_username)
         graph_info_response = requests.get(
             sharepoint_site+"/_api/search/query?Querytext='Username:" + profile_username + "'&SourceId='b09a7990-05ea-4af9-81ef-edfab16c4e31'&SelectProperties='DocId'",
             headers={'Authorization': 'Bearer ' + access_token})
+        log.warning("graph_info_response.content: " + graph_info_response.content)
         graph_elements = get_data_from_gql(graph_info_response.content)
         actor_id = graph_elements[0]['DocId']
 
         # get documents modified by the user
         documents_modified_response = requests.get(sharepoint_site+"/_api/search/query?Querytext='*'&Properties='GraphQuery:ACTOR("+actor_id+"\,action\:1003)'",
             headers={'Authorization': 'Bearer ' + access_token})
+        log.warning("documents_modified_response.content: " + documents_modified_response.content)
         documents_modified = get_data_from_gql(documents_modified_response.content)
 
         # get other users that the user is working with
