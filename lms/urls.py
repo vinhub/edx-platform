@@ -454,6 +454,12 @@ if settings.COURSEWARE_ENABLED:
             url(r'^courses/{}/teams'.format(settings.COURSE_ID_PATTERN), include('teams.urls'), name="teams_endpoints"),
         )
 
+    if settings.FEATURES["ENABLE_YAMMER"]:
+
+        urlpatterns += (
+            url(r'^courses/{}/yammer'.format(settings.COURSE_ID_PATTERN), include('yammer.urls'), name="yammer_endpoints"),
+        )
+        
     if settings.FEATURES.get('ENABLE_RENDER_XBLOCK_API'):
         # TODO (MA-789) This endpoint path still needs to be approved by the arch council.
         # Until then, keep the version at v0.
