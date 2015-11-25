@@ -402,9 +402,6 @@ FEATURES = {
     # Teams feature
     'ENABLE_TEAMS': False,
 
-    # Enable Yammer Tab
-    'ENABLE_YAMMER': True,
-
     # Show video bumper in LMS
     'ENABLE_VIDEO_BUMPER': False,
 
