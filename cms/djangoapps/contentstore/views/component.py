@@ -252,11 +252,34 @@ def get_component_templates(courselike, library=False):
         'video': _("Video")
     }
 
+    top_level_component_types = []
+    course_top_level_keys = courselike.top_level_modules
+    advanced_component_types = _advanced_component_types()
+    if isinstance(course_top_level_keys, list):
+        for category in course_top_level_keys:
+            if category in advanced_component_types:
+
+                try:
+                    component_display_names[category] = xblock_type_display_name(category, default_display_name=category)
+                    top_level_component_types.append(category)
+
+                except PluginMissingError:
+                    log.warning(
+                        "Top level component %s does not exist. It will not be added to the Studio new component menu.",
+                        category
+                    )
+    else:
+        log.error(
+            "Improper format for course advanced keys! %s",
+            course_top_level_keys
+        )
+
     component_templates = []
     categories = set()
     # The component_templates array is in the order of "advanced" (if present), followed
     # by the components in the order listed in COMPONENT_TYPES.
     component_types = COMPONENT_TYPES[:]
+    component_types.extend(top_level_component_types)
 
     # Libraries do not support discussions
     if library:

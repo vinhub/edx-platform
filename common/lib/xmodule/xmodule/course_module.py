@@ -418,6 +418,13 @@ class CourseFields(object):
         help=_("Enter the names of the advanced components to use in your course."),
         scope=Scope.settings
     )
+
+    top_level_modules = List(
+        display_name=_("Top Level Module List"),
+        help=_("Enter the names of the top level components to use in your course."),
+        scope=Scope.settings
+    )
+
     has_children = True
     checklists = List(
         scope=Scope.settings,
