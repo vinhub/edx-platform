@@ -20,4 +20,4 @@
 <% } %>
   <span class="sr"> <%= gettext("Add Component:") %></span>
   <span class="name"><%= display_name %></span>
-</button>
+</a>
