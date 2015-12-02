@@ -561,7 +561,8 @@ def get_user_graph_info(request, user_id):
         if int(loggedin_user_social.extra_data['expires_on']) < int(time.time()):
             loggedin_user_social.refresh_token(load_strategy())
             loggedin_user_social = request.user.social_auth.get(provider='azuread-oauth2')
-            access_token = loggedin_user_social.extra_data['access_token']
+
+        access_token = loggedin_user_social.extra_data['access_token']
 
         log.warning("extra_data: " + json.dumps(loggedin_user_social.extra_data))
 
