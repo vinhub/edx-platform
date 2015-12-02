@@ -4,7 +4,7 @@
     display: inline-block;
     width: 60px;
     height: 60px;
-    background: url(/images/large-<%= type %>-icon.png) center no-repeat;
+    background: url(<%= static_url %>images/large-<%= type %>-icon.png) center no-repeat;
 }
 </style>
 <% } %>
@@ -18,6 +18,5 @@
 <% } else { %>
   <span class="large-template-icon large-custom-button-icon"></span>
 <% } %>
-  <span class="sr"> <%= gettext("Add Component:") %></span>
   <span class="name"><%= display_name %></span>
 </a>

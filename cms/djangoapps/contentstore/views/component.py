@@ -335,7 +335,8 @@ def get_component_templates(courselike, library=False):
         component_templates.append({
             "type": category,
             "templates": templates_for_category,
-            "display_name": component_display_names[category]
+            "display_name": component_display_names[category],
+            "static_url": settings.STATIC_URL
         })
 
     # Libraries do not support advanced components at this time.

@@ -24,6 +24,7 @@ define(["backbone"], function (Backbone) {
             this.type = response.type;
             this.templates = response.templates;
             this.display_name = response.display_name;
+            this.static_url = response.static_url;
 
             // Sort the templates.
             this.templates.sort(function (a, b) {

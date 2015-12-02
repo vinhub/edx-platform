@@ -10,7 +10,8 @@ define(["js/views/baseview"],
                     this.template({
                         type: this.model.type,
                         templates: this.model.templates,
-                        display_name: this.model.display_name
+                        display_name: this.model.display_name,
+                        static_url: this.model.static_url
                     })
                 );
             }
