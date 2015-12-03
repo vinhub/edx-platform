@@ -1,6 +1,6 @@
-<% if (type !== 'advanced' || type !== 'discussion' || type !== 'html' || type !== 'problem' || type !== 'video'){ %>
+<% if (type !== 'discussion' && type !== 'html' && type !== 'problem' && type !== 'video' && type !== 'advanced'){ %>
 <style type="text/css">
-.large-custom-button-icon{
+.large-<%= type %>-icon{
     display: inline-block;
     width: 60px;
     height: 60px;
@@ -13,10 +13,6 @@
 <% } else { %>
 <a href="#" class="single-template add-xblock-component-button" data-type="<%= type %>" data-category="<%= templates[0].category %>">
 <% } %>
-<% if(type === 'discussion' || type === 'html' || type === 'problem' || type === 'video' || type === 'advanced') {%>
-  <span class="large-template-icon large-<%= type %>-icon"></span>
-<% } else { %>
-  <span class="large-template-icon large-custom-button-icon"></span>
-<% } %>
-  <span class="name"><%= display_name %></span>
+<span class="large-template-icon large-<%= type %>-icon"></span>
+<span class="name"><%= display_name %></span>
 </a>
