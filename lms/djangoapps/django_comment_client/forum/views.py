@@ -566,25 +566,52 @@ def get_user_graph_info(request, user_id):
 
         log.warning("extra_data: " + json.dumps(loggedin_user_social.extra_data))
 
-        profile_username = django_user_social.uid
+        # use sharepoint site specified in settings of the logged in user
+        sharepoint_site = loggedin_user_social.extra_data['resource']
+
+        # get actor id of the user whose profile we are viewing
+        profile_username = django_user_social.uid.split("@")[0]
+
+        # profile_username = django_user_social.uid
         log.warning("user name: " + profile_username)
 
-        # get documents that user is working on
-        documents_modified_response = requests.get("https://graph.microsoft.com/beta/users/" + profile_username + "/trendingAround",
+        graph_info_response = requests.get(
+            sharepoint_site+"/_api/search/query?Querytext='Username:" + profile_username + "'&SourceId='b09a7990-05ea-4af9-81ef-edfab16c4e31'&SelectProperties='DocId'",
             headers={'Authorization': 'Bearer ' + access_token})
+        log.warning("graph_info_response.content: " + graph_info_response.content)
+        graph_elements = get_data_from_gql(graph_info_response.content)
+        actor_id = graph_elements[0]['DocId']
+
+        # get documents that user is working on
+        # documents_modified_response = requests.get("https://graph.microsoft.com/beta/users/" + profile_username + "/trendingAround",
+        #     headers={'Authorization': 'Bearer ' + access_token})
+
+        documents_modified_response = requests.get(sharepoint_site+"/_api/search/query?Querytext='*'&Properties='GraphQuery:ACTOR("+actor_id+"\,action\:1003)'",
+            headers={'Authorization': 'Bearer ' + access_token})
+
         log.warning("documents_modified_response.content: " + documents_modified_response.content)
-        documents_modified = json.loads(documents_modified_response.content)['value']
+
+        # documents_modified = json.loads(documents_modified_response.content)['value']
+        documents_modified = get_data_from_gql(documents_modified_response.content)
 
         # get other users that the user is working with
-        working_with_response = requests.get("https://graph.microsoft.com/beta/users/" + profile_username + "/workingWith",
-            headers={'Authorization': 'Bearer ' + access_token})
-        working_with = json.loads(working_with_response.content)['value']
+        # working_with_response = requests.get("https://graph.microsoft.com/beta/users/" + profile_username + "/workingWith",
+        #     headers={'Authorization': 'Bearer ' + access_token})
 
-        for key, user in enumerate(working_with):
-            try:
-                working_with[key]['user_id'] = User.objects.get(email=user['Email']).id
-            except User.DoesNotExist:
-                logging.exception('User not exist in Edx')
+        working_with_response = requests.get(
+            sharepoint_site+"/_api/search/query?Querytext='*'&Properties='GraphQuery:ACTOR("+actor_id+"\,action\:1033),GraphRankingModel:{\"features\"\:[{\"function\"\:\"EdgeWeight\"}]}'&RankingModelId='0c77ded8-c3ef-466d-929d-905670ea1d72'&SelectProperties='UserName,Path,Title,PictureThumbnailURL,PictureURL'",
+            headers={'Authorization': 'Bearer ' + access_token})
+
+        # working_with = json.loads(working_with_response.content)['value']
+
+        working_with = get_data_from_gql(working_with_response.content)
+        working_with = process_working_with(working_with)
+
+        # for key, user in enumerate(working_with):
+        #     try:
+        #         working_with[key]['user_id'] = User.objects.get(email=user['Email']).id
+        #     except User.DoesNotExist:
+        #         logging.exception('User not exist in Edx')
     except:
         logging.exception('Failed to get user graph info.')
         
@@ -593,3 +620,46 @@ def get_user_graph_info(request, user_id):
     user_graph_info['office_graph_info'] = office_graph_info
 
     return user_graph_info
+
+def get_data_from_gql(content):
+
+    namespaces = {
+        'd': 'http://schemas.microsoft.com/ado/2007/08/dataservices',
+        'm': 'http://schemas.microsoft.com/ado/2007/08/dataservices/metadata'
+    }
+
+    root = ET.fromstring(content)
+    row_elements = root.findall("d:PrimaryQueryResult//d:Table//d:Rows/d:element", namespaces)
+
+    data = []
+    for row_element in row_elements:
+        keyvalue_elements = row_element.findall('.//d:element', namespaces)
+        item = {}
+
+        for keyvalue_element in keyvalue_elements:
+            key = keyvalue_element.find('d:Key', namespaces)
+            value = keyvalue_element.find('d:Value', namespaces)
+            item[key.text] = value.text
+
+        data.append(item)
+
+    return data
+
+# Process the list of users the logged in user is working with to add additional displayable information where available.
+def process_working_with(graph_users):
+    for graph_user in graph_users:
+        user_found = None
+        graph_user_name = graph_user['UserName']
+        for user in User.objects.all():
+            try:
+                user_social_auth = user.social_auth.get(provider='azuread-oauth2')
+                if user_social_auth.uid == graph_user_name:
+                    user_found = user
+                    break
+            except:
+                continue
+
+        if user_found is not None:
+            graph_user['user_id'] = user_found.id
+
+    return graph_users
