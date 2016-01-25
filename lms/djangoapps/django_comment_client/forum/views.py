@@ -552,7 +552,7 @@ def get_user_graph_info(request, user_id):
     office_graph_info = {}
     documents_modified = []
     working_with = []
-
+    user_photo = ""
     try:
         django_user_social = User.objects.get(id=user_id).social_auth.get(provider='azuread-oauth2') # TODO: remove provider name hardcoding
         loggedin_user_social = request.user.social_auth.get(provider='azuread-oauth2') # TODO: remove provider name hardcoding
@@ -607,6 +607,23 @@ def get_user_graph_info(request, user_id):
         working_with = get_data_from_gql(working_with_response.content)
         working_with = process_working_with(working_with)
 
+        url = loggedin_user_social.extra_data['token_url']
+        params = {}
+        params['client_id'] = loggedin_user_social.extra_data['client_id']
+        params['client_secret'] = loggedin_user_social.extra_data['secret']
+        params['refresh_token'] = loggedin_user_social.extra_data['refresh_token']
+        params['grant_type'] = 'refresh_token'
+        params['resource'] = 'https://outlook.office365.com'
+
+        r = requests.post(url, data=params)
+
+        res = json.loads(r.content)
+
+        photo = requests.get("https://outlook.office.com/api/beta/Users('" + django_user_social.uid + "')/photo/$value", headers={'Authorization': 'Bearer ' + res['access_token']})
+
+        if photo.status_code != 404:
+            user_photo = photo.content.encode('base64','strict')
+
         # for key, user in enumerate(working_with):
         #     try:
         #         working_with[key]['user_id'] = User.objects.get(email=user['Email']).id
@@ -618,6 +635,7 @@ def get_user_graph_info(request, user_id):
     office_graph_info['documents_modified'] = documents_modified
     office_graph_info['working_with'] = working_with
     user_graph_info['office_graph_info'] = office_graph_info
+    user_graph_info['user_photo'] = user_photo
 
     return user_graph_info
 
