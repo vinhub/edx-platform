@@ -2,44 +2,45 @@
 <%! from django.utils.translation import ugettext as _, ungettext %>
 <%def name="span(num)"><span>${num}</span></%def>
 <div class="user-profile">
-  <p>Documents Modified:</p>
-  <%def name="docslist(docs)">
-    % if not docs:
-      <div class="sidebar-user-roles">None.</div>
-    % else:
-      % for doc in docs:
-        <div class="sidebar-user-roles">${caller.body(doc=doc)}</div>
-      % endfor
-    % endif
-  </%def>
+    <p>Documents Modified:</p>
+    <%def name="docslist(docs)">
+        % if not docs:
+            <div class="sidebar-user-roles">None.</div>
+        % else:
+            % for doc in docs:
+                <div class="sidebar-user-roles">${caller.body(doc=doc)}</div>
+            % endfor
+        % endif
+    </%def>
 
-  <%self:docslist docs="${user_graph_info['office_graph_info']['documents_modified']}" args="doc">
-      <!-- TODO: <img src="${doc['PictureThumbnailURL']}" alt="${doc['Title']}" height="30" width="30"> -->
-      <a href="${doc['ServerRedirectedURL']}" target="_blank"><i class="fa fa-file-o"></i>&nbsp;&nbsp;${doc['Title']}</a>
-  </%self:docslist>
-  <br/>
-  <p>Working With:</p>
-  <%def name="userslist(users)">
-    % if not users:
-      <div class="sidebar-user-roles">None.</div>
-    % else:
-      % for user in users:
-        <div class="sidebar-user-roles">${caller.body(user=user)}</div>
-      % endfor
-    % endif
-  </%def>
+    <%self:docslist docs="${user_graph_info['office_graph_info']['documents_modified']}" args="doc">
+        <!-- TODO: <img src="${doc['PictureThumbnailURL']}" alt="${doc['Title']}" height="30" width="30"> -->
+        <a href="${doc['ServerRedirectedURL']}" target="_blank"><i class="fa fa-file-o"></i>&nbsp;&nbsp;${doc['Title']}
+        </a>
+    </%self:docslist>
+    <br/>
+    <p>Working With:</p>
+    <%def name="userslist(users)">
+        % if not users:
+            <div class="sidebar-user-roles">None.</div>
+        % else:
+            % for user in users:
+                <div class="sidebar-user-roles">${caller.body(user=user)}</div>
+            % endfor
+        % endif
+    </%def>
 
-  <%self:userslist users="${user_graph_info['office_graph_info']['working_with']}" args="user">
-      % if user.has_key('user_id'):
-##         <a href="${user['user_id']}"><i class="fa fa-user"></i>&nbsp;&nbsp;${user['preferredName']}</a>
-        <a href="${user['user_id']}"><i class="fa fa-user"></i>&nbsp;&nbsp;${user['Title']}</a>
-          % else:
-        <a href="${user['Path']}" target="_blank"><i class="fa fa-user"></i>&nbsp;&nbsp;${user['Title']}</a>
-        <!-- TODO: <a href="${user['Path']}" target="_blank"><img src="${user['PictureURL']}" alt="${user['Title']}" height="30" width="30">&nbsp;&nbsp;${user['Title']}</a> -->
-##      <i class="fa fa-user"></i>&nbsp;&nbsp;${user['preferredName']}
-      % endif
-  </%self:userslist>
- </div>
+    <%self:userslist users="${user_graph_info['office_graph_info']['working_with']}" args="user">
+        % if user.has_key('user_id'):
+        ##         <a href="${user['user_id']}"><i class="fa fa-user"></i>&nbsp;&nbsp;${user['preferredName']}</a>
+                <a href="${user['user_id']}"><i class="fa fa-user"></i>&nbsp;&nbsp;${user['Title']}</a>
+        % else:
+            <a href="${user['Path']}" target="_blank"><i class="fa fa-user"></i>&nbsp;&nbsp;${user['Title']}</a>
+            <!-- TODO: <a href="${user['Path']}" target="_blank"><img src="${user['PictureURL']}" alt="${user['Title']}" height="30" width="30">&nbsp;&nbsp;${user['Title']}</a> -->
+        ##      <i class="fa fa-user"></i>&nbsp;&nbsp;${user['preferredName']}
+              % endif
+    </%self:userslist>
+</div>
 
 <script type="text/javascript">
     $(function () {
@@ -51,14 +52,10 @@
             apiKeyCC: '9c967f6b-a846-4df2-b43d-5167e47d81e1' // SDK+CC DF
         };
 
+
         Skype.initialize({apiKey: config.apiKey}, function (api) {
             window.skypeWebAppCtor = api.application;
             window.skypeWebApp = new api.application();
-
-            // whenever client.state changes, display its value
-            window.skypeWebApp.signInManager.state.changed(function (state) {
-                console.log(state);
-            });
 
             var client = window.skypeWebApp;
 
@@ -67,23 +64,29 @@
                 "client_id": "9dd17984-497f-42e1-8304-a3c7f2b5e9c4",
                 "origins": ["https://webdir.online.lync.com/autodiscover/autodiscoverservice.svc/root"],
                 "cors": true,
-                "version": 'SkypeWebSample/1.0.0'
+                "version": 'SkypeWebEdx/1.0.0'
             };
+            // start signing in
+
             client.signInManager.signIn(
-            params
+                    params
             ).then(function () {
                 // when the sign in operation succeeds display the user name
-                alert('Signed in as ' + client.personsAndGroupsManager.mePerson.displayName());
+                console.log('Signed in as ' + client.personsAndGroupsManager.mePerson.displayName());
+
+
             }, function (error) {
-                alert("Can't sign in, please check the user name and password.");
                 console.log(error || 'Cannot sign in');
-             });
+            });
+
+            window.skypeWebApp.signInManager.state.changed(function (state) {
+//            $('#client_state').text(state);
+                console.log(state);
+            });
         }, function (err) {
             console.log(err);
             alert('Cannot load the SDK.');
         });
-
-
     });
 
 </script>
